@@ -192,6 +192,47 @@
 
   </main>
 
+  <!-- Modal: Interactive Step-Up 2FA Challenge (Stage D) -->
+  <div id="stepUpModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass max-w-md w-full p-6 rounded-2xl border border-amber-300 shadow-2xl space-y-4">
+      <div class="flex items-center space-x-3 text-amber-600">
+        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-xl">
+          <i class="fa-solid fa-shield-virus"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-sm">Security Verification Required</h3>
+          <p class="text-[11px] text-slate-500">IdentityGuard flagged an unusual behavioral boundary</p>
+        </div>
+      </div>
+
+      <div class="bg-amber-50 p-3 rounded-lg border border-amber-200 text-xs text-amber-900 space-y-1">
+        <div class="font-semibold" id="stepUpReason">Step-up verification challenge triggered.</div>
+        <div class="text-[11px] text-amber-700">A 6-digit one-time authorization code has been generated. Enter code to restore session and complete transaction.</div>
+      </div>
+
+      <div class="p-3 bg-slate-100 rounded-lg border border-slate-200 text-center">
+        <div class="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Demo One-Time Password (OTP)</div>
+        <div id="demoOtpDisplay" class="font-mono text-2xl font-extrabold tracking-widest text-indigo-700 my-1">------</div>
+        <div class="text-[10px] text-slate-500">Auto-populated for hackathon jury evaluation</div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-slate-700 mb-1">Enter 6-Digit Passcode</label>
+        <input type="text" id="inputOtp" maxlength="6" placeholder="e.g. 123456" class="w-full text-center font-mono text-lg tracking-widest p-2.5 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
+        <div id="otpErrorMsg" class="hidden text-rose-600 text-xs mt-1 font-medium"></div>
+      </div>
+
+      <div class="flex space-x-2 pt-2">
+        <button onclick="submitOtpVerification()" id="btnSubmitOtp" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow transition">
+          <i class="fa-solid fa-lock-open mr-1"></i> Verify & Proceed
+        </button>
+        <button onclick="closeStepUpModal()" class="px-3 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-xs font-medium transition">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentUser = "asha";
     let activeSessionId = "sess_bank_" + Math.random().toString(36).substring(2, 9);
@@ -276,6 +317,7 @@
             appendLogEntry(logs, "200 REVOKE", "rose", data);
           } else if (data.response === "step_up") {
             appendLogEntry(logs, "200 STEP_UP", "amber", data);
+            openStepUpModal(data, payload);
           } else {
             appendLogEntry(logs, "200 OK", "emerald", data);
           }
@@ -287,6 +329,99 @@
         alert("Error connecting to IdentityGuard backend: " + err.message);
       }
     }
+
+    let pendingActionPayload = null;
+
+    function openStepUpModal(data, lastPayload) {
+      pendingActionPayload = lastPayload;
+      const modal = document.getElementById("stepUpModal");
+      const reasonEl = document.getElementById("stepUpReason");
+      const otpDisplay = document.getElementById("demoOtpDisplay");
+      const inputEl = document.getElementById("inputOtp");
+      const errEl = document.getElementById("otpErrorMsg");
+
+      reasonEl.innerText = data.explanation || "Step-up verification required under rule " + (data.deciding_rule || "R-02");
+      const otp = data.otp_demo || "849201";
+      otpDisplay.innerText = otp;
+      inputEl.value = otp; // Pre-fill for instant frictionless jury demonstration
+      errEl.classList.add("hidden");
+
+      modal.classList.remove("hidden");
+    }
+
+    function closeStepUpModal() {
+      document.getElementById("stepUpModal").classList.add("hidden");
+    }
+
+    async function submitOtpVerification() {
+      const inputEl = document.getElementById("inputOtp");
+      const errEl = document.getElementById("otpErrorMsg");
+      const btn = document.getElementById("btnSubmitOtp");
+      const otpVal = inputEl.value.trim();
+
+      if (!otpVal || otpVal.length < 6) {
+        errEl.innerText = "Please enter all 6 digits.";
+        errEl.classList.remove("hidden");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Verifying...`;
+
+      try {
+        const res = await fetch(`/v1/sessions/${encodeURIComponent(activeSessionId)}/verify-otp`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ otp: otpVal })
+        });
+
+        const data = await res.json();
+        const logs = document.getElementById("responseLogs");
+
+        if (res.status === 200) {
+          // Success!
+          closeStepUpModal();
+          appendLogEntry(logs, "2FA PASSED", "emerald", {
+            explanation: "Session restored to ACTIVE status. Step-up verification challenge satisfied.",
+            deciding_rule: "2FA_CHALLENGE_SOLVED",
+            evidence: { level: "verified" }
+          });
+
+          // Re-attempt pending action automatically
+          if (pendingActionPayload) {
+            appendLogEntry(logs, "RE-ATTEMPTING", "amber", {
+              explanation: "Re-executing original action '" + pendingActionPayload.action + "' under restored active session...",
+              deciding_rule: "POST_2FA_REEXEC"
+            });
+            const actionToRetry = pendingActionPayload.action;
+            setTimeout(() => {
+              performAction(actionToRetry);
+            }, 800);
+          }
+        } else if (res.status === 403) {
+          // Max attempts exceeded -> Hard session revocation
+          closeStepUpModal();
+          setRevokedUI("Maximum OTP attempts exceeded. Session terminally revoked.");
+          appendLogEntry(logs, "403 REVOKED", "rose", {
+            explanation: data.detail || "Session terminally revoked due to failed authentication challenge.",
+            deciding_rule: "R-10_CHALLENGE_FAILED"
+          });
+        } else {
+          errEl.innerText = data.error || (data.detail || "Invalid passcode.");
+          if (data.attempts_left !== undefined) {
+            errEl.innerText += ` (${data.attempts_left} attempts remaining)`;
+          }
+          errEl.classList.remove("hidden");
+        }
+      } catch (err) {
+        errEl.innerText = "Verification request failed: " + err.message;
+        errEl.classList.remove("hidden");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-lock-open mr-1"></i> Verify & Proceed`;
+      }
+    }
+
 
     function appendLogEntry(container, badge, color, data) {
       const colorMap = {

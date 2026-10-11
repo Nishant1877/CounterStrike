@@ -57,9 +57,10 @@ def ingest_single_event(
         "response": decision.response.value,
         "session": {
             "session_id": decision.session_id,
-            "status": "revoked" if is_refused or decision.response == ResponseAction.REVOKE else "active"
+            "status": "revoked" if is_refused or decision.response == ResponseAction.REVOKE else ("pending_verification" if decision.response == ResponseAction.STEP_UP else "active")
         },
         "signals": [s.model_dump() for s in decision.signals],
+
         "rules_fired": decision.rules_fired,
         "deciding_rule": decision.deciding_rule,
         "advisory": decision.advisory.model_dump() if decision.advisory else None,
@@ -70,6 +71,18 @@ def ingest_single_event(
         "explanation": decision.explanation_text
     }
 
+    if decision.response == ResponseAction.STEP_UP:
+        from api.routes_sessions import _active_otps
+        import secrets, time
+        otp = f"{secrets.randbelow(900000) + 100000}"
+        _active_otps[decision.session_id] = {
+            "otp": otp,
+            "challenge_id": f"chal_auto_{decision.decision_id[:8]}",
+            "expires_at": time.time() + 300,
+            "attempts_left": 3
+        }
+        response_payload["otp_demo"] = otp
+
     if is_refused:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -77,6 +90,7 @@ def ingest_single_event(
         )
 
     return response_payload
+
 
 
 @router.post("/batch", response_model=Dict[str, Any])
