@@ -66,6 +66,10 @@ class SecurityPipeline:
         self.ordering_handler = ordering_handler or OrderingHandler()
         self.profile_manager = profile_manager or ProfileManager()
         self.advisor = advisor or MarkovSequenceAdvisor()
+        self.thresholds: Dict[str, Any] = {
+            "travel_speed_kmh": 900.0,
+            "sensitive_window_minutes": 30
+        }
 
         # Instantiate detectors
         self.s1_detector = UnfamiliarDeviceDetector()
@@ -74,6 +78,10 @@ class SecurityPipeline:
         self.s4_detector = SensitiveAfterUnfamiliarLoginDetector()
         self.s5_detector = UnfamiliarLocationDetector()
         self.s6_detector = SensitiveActionChainDetector()
+
+    def update_thresholds(self, new_thresholds: Dict[str, Any]) -> None:
+        """Dynamically update signal evaluation thresholds."""
+        self.thresholds.update(new_thresholds)
 
     def process_event(
         self,
@@ -239,12 +247,12 @@ class SecurityPipeline:
         }
 
         # Step 5: Evaluate Signals S1 to S6
-        s1 = self.s1_detector.evaluate(norm_event, profile, self.location_db, session_ctx)
-        s2 = self.s2_detector.evaluate(norm_event, profile, self.location_db, session_ctx)
-        s3 = self.s3_detector.evaluate(norm_event, profile, self.location_db, session_ctx)
-        s4 = self.s4_detector.evaluate(norm_event, profile, self.location_db, session_ctx)
-        s5 = self.s5_detector.evaluate(norm_event, profile, self.location_db, session_ctx)
-        s6 = self.s6_detector.evaluate(norm_event, profile, self.location_db, session_ctx)
+        s1 = self.s1_detector.evaluate(norm_event, profile, self.location_db, session_ctx, thresholds=self.thresholds)
+        s2 = self.s2_detector.evaluate(norm_event, profile, self.location_db, session_ctx, thresholds=self.thresholds)
+        s3 = self.s3_detector.evaluate(norm_event, profile, self.location_db, session_ctx, thresholds=self.thresholds)
+        s4 = self.s4_detector.evaluate(norm_event, profile, self.location_db, session_ctx, thresholds=self.thresholds)
+        s5 = self.s5_detector.evaluate(norm_event, profile, self.location_db, session_ctx, thresholds=self.thresholds)
+        s6 = self.s6_detector.evaluate(norm_event, profile, self.location_db, session_ctx, thresholds=self.thresholds)
 
         signals_dict: Dict[str, SignalResult] = {
             s1.signal_id: s1,

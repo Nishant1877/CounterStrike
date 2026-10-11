@@ -89,14 +89,14 @@ def test_compat_api_scenarios_and_replay(client):
 
 def test_compat_api_live_evaluate_and_policy(client):
     """Verifies POST /api/events/evaluate and policy thresholds."""
+    # Reset engine to clean baseline state and default policy
+    client.post("/api/reset")
+
     # Policy GET
     r_pol = client.get("/api/policy")
     assert r_pol.status_code == 200
     pol = r_pol.json()
     assert pol["impossible_travel_speed_kmh"] == 750.0
-
-    # Reset engine to clean baseline state
-    client.post("/api/reset")
 
     # Evaluate event
     now = time.time()
