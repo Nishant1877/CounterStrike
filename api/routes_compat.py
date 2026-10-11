@@ -11,8 +11,14 @@ Connects the React 18 frontend to the IdentityGuard backend engine:
 
 from typing import List, Dict, Any, Optional
 import time
-from fastapi import APIRouter, HTTPException, Depends
+import json
+import csv
+import io
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
+
 
 from external_compat.models import (
     SecurityEvent,
@@ -122,6 +128,11 @@ def evaluate_single_event(
     return result
 
 
+# Alias for backward-compat and internal route calls
+evaluate_live_event = evaluate_single_event
+
+
+
 @router.post("/scenarios/replay", response_model=List[EvaluationResult])
 def replay_scenario(
     req: Dict[str, Any],
@@ -224,4 +235,190 @@ def reset_engine(db: Session = Depends(get_db), pipeline: SecurityPipeline = Dep
         db.rollback()
 
     return {"status": "reset_successful", "revoked_sessions": list(compat_engine.revoked_sessions)}
+
+
+@router.post("/events/upload-file", response_model=List[EvaluationResult])
+async def upload_events_file_compat(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    pipeline: SecurityPipeline = Depends(get_pipeline)
+):
+    """
+    POST /api/events/upload-file
+    Upload forensic JSON or CSV event batches, evaluate each in real-time,
+    and persist into cryptographic audit trail.
+    """
+    content = await file.read()
+    results = []
+
+    if file.filename.endswith('.json'):
+        try:
+            raw_data = json.loads(content.decode('utf-8'))
+            events_list = [SecurityEvent(**item) for item in raw_data] if isinstance(raw_data, list) else [SecurityEvent(**raw_data)]
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid JSON format: {e}")
+    elif file.filename.endswith('.csv'):
+        try:
+            reader = csv.DictReader(io.StringIO(content.decode('utf-8')))
+            events_list = [
+                SecurityEvent(
+                    timestamp=float(row.get('timestamp', time.time())),
+                    user=row['user'],
+                    session_id=row['session_id'],
+                    device_id=row['device_id'],
+                    location_label=row['location_label'],
+                    action=row['action'],
+                    details={}
+                )
+                for row in reader
+            ]
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Invalid CSV format: {e}")
+    else:
+        raise HTTPException(status_code=400, detail="Only .json or .csv files supported")
+
+    for ev in events_list:
+        res = evaluate_live_event(ev, db=db, pipeline=pipeline)
+        results.append(res)
+
+    return results
+
+
+
+# ----------------------------------------------------------------------------------
+# Advanced Enterprise Endpoints (Merged from DY Patil v6.0 Suite)
+# ----------------------------------------------------------------------------------
+
+class BankActionRequest(BaseModel):
+    user: str
+    session_id: str
+    device_id: str
+    location_label: str
+    action: str  # view_balance, download_statement, update_email, transfer_funds
+    amount: Optional[float] = 0.0
+
+
+@router.post("/gateway/protected-action")
+def execute_protected_bank_action(
+    req: BankActionRequest,
+    db: Session = Depends(get_db),
+    pipeline: SecurityPipeline = Depends(get_pipeline)
+):
+    """
+    Reverse-Proxy Gateway Filter (A-03 Enterprise App Simulator):
+    Inspects transaction against IdentityGuard before executing in the banking core.
+    Enforces R11 terminal revocation if compromised.
+    """
+    sec_event = SecurityEvent(
+        timestamp=time.time(),
+        user=req.user,
+        session_id=req.session_id,
+        device_id=req.device_id,
+        location_label=req.location_label,
+        action=req.action,
+        details={"amount": req.amount, "gateway_protected": True}
+    )
+
+    eval_result = evaluate_live_event(sec_event, db=db, pipeline=pipeline)
+
+    if eval_result.session_is_revoked:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Security Gateway Interception: Session '{req.session_id}' is revoked. Transaction rejected!"
+        )
+
+    if eval_result.action_enforced.value == "step_up_verification":
+        return {
+            "status": "MFA_REQUIRED",
+            "message": "Transaction held: Step-Up verification required before funds dispatch.",
+            "evaluation": eval_result
+        }
+
+    return {
+        "status": "SUCCESS",
+        "message": f"Action '{req.action}' authorized successfully by IdentityGuard Gateway.",
+        "evaluation": eval_result
+    }
+
+
+@router.get("/users/list")
+def list_active_users():
+    """List distinct user identities active in the system."""
+    return list(compat_engine.user_histories.keys())
+
+
+@router.get("/sessions")
+def list_active_sessions():
+    """Return all active and revoked sessions across the platform."""
+    sessions = []
+    for sess_id, evs in compat_engine.session_events.items():
+        is_revoked = sess_id in compat_engine.revoked_sessions
+        last_ev = evs[-1] if evs else None
+        sessions.append({
+            "session_id": sess_id,
+            "user": last_ev.user if last_ev else "unknown",
+            "device": last_ev.device_id if last_ev else "unknown",
+            "last_location": last_ev.location_label if last_ev else "unknown",
+            "event_count": len(evs),
+            "is_revoked": is_revoked,
+            "last_action": last_ev.action if last_ev else "none",
+            "last_active": last_ev.timestamp if last_ev else 0
+        })
+    sessions.sort(key=lambda x: x["last_active"], reverse=True)
+    return sessions
+
+
+class RevokeSessionRequest(BaseModel):
+    session_id: str
+    reason: Optional[str] = "Manual kill-switch triggered by SOC Analyst"
+
+
+@router.post("/sessions/revoke")
+def manual_revoke_session_compat(
+    req: RevokeSessionRequest,
+    db: Session = Depends(get_db)
+):
+    """Analyst Emergency Kill-Switch: Terminally revokes target session."""
+    from core.streaming import broadcaster
+    from store.models import SessionModel
+    from core.contracts import SessionState
+
+    compat_engine.revoked_sessions.add(req.session_id)
+    
+    # Also revoke in primary database
+    try:
+        sess_rec = db.query(SessionModel).filter(SessionModel.session_id == req.session_id).first()
+        if sess_rec:
+            sess_rec.status = SessionState.REVOKED.value
+            sess_rec.revoked_at = datetime.now(timezone.utc)
+            sess_rec.revoked_by = f"kill_switch:{req.reason}"
+            db.commit()
+
+        AuditLedger.append_entry(
+            session=db,
+            actor="SOCAnalystKillSwitch",
+            action="emergency_session_kill",
+            target=req.session_id,
+            before_state="active",
+            after_state=f"revoked: {req.reason}"
+        )
+    except Exception:
+        db.rollback()
+
+    broadcaster.publish_nowait(
+        event_type="session_revoked",
+        data={
+            "session_id": req.session_id,
+            "reason": req.reason,
+            "timestamp": time.time()
+        }
+    )
+
+    return {
+        "status": "revoked",
+        "session_id": req.session_id,
+        "reason": req.reason,
+        "timestamp": time.time()
+    }
+
 

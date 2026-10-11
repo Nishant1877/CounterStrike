@@ -120,3 +120,55 @@ def test_react_app_static_serving(client):
     assert r_html.status_code == 200
     assert "VORTEXA 3.0" in r_html.text
     assert "assets/index-" in r_html.text
+
+
+def test_v6_gateway_and_session_management(client):
+    """Verifies v6.0 Gateway Filter, Emergency Kill-Switch, and Batch Ingestion."""
+    # 1. Gateway execution on active session
+    req = {
+        "user": "alex_merchant",
+        "session_id": "sess_test_v6_1",
+        "device_id": "dev_v6_1",
+        "location_label": "New York, US",
+        "action": "view_balance",
+        "amount": 0.0
+    }
+    res = client.post("/api/gateway/protected-action", json=req)
+    assert res.status_code == 200
+    assert res.json()["status"] == "SUCCESS"
+
+    # 2. Identity directory endpoints
+    res_users = client.get("/api/users/list")
+    assert res_users.status_code == 200
+    assert "alex_merchant" in res_users.json()
+
+    res_sess = client.get("/api/sessions")
+    assert res_sess.status_code == 200
+    session_ids = [s["session_id"] for s in res_sess.json()]
+    assert "sess_test_v6_1" in session_ids
+
+    # 3. Emergency Kill-Switch
+    res_revoke = client.post("/api/sessions/revoke", json={"session_id": "sess_test_v6_1", "reason": "SOC Emergency Kill"})
+    assert res_revoke.status_code == 200
+
+    # 4. Gateway must now reject with 403 on revoked session
+    res_blocked = client.post("/api/gateway/protected-action", json=req)
+    assert res_blocked.status_code == 403
+
+    # 5. Batch File Upload ingestion (.json)
+    import json
+    batch_data = [
+        {
+            "timestamp": time.time(),
+            "user": "batch_tester",
+            "session_id": "sess_batch_1",
+            "device_id": "dev_batch_1",
+            "location_label": "Singapore, SG",
+            "action": "login"
+        }
+    ]
+    files = {"file": ("batch.json", json.dumps(batch_data), "application/json")}
+    res_upload = client.post("/api/events/upload-file", files=files)
+    assert res_upload.status_code == 200
+    assert len(res_upload.json()) == 1
+
