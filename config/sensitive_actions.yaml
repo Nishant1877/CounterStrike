@@ -1,0 +1,18 @@
+session_actions:
+  - login
+  - logout
+  - verify_step_up
+
+routine_actions:
+  - view_balance
+  - view_statement
+  - view_profile
+  - search
+
+sensitive_actions:
+  - change_email
+  - change_password
+  - change_phone
+  - add_payee
+  - request_transfer
+  - export_data

@@ -1,0 +1,16 @@
+label,aliases,latitude,longitude,granularity,timezone
+Pune,pune|poona,18.5204,73.8567,city,Asia/Kolkata
+Mumbai,mumbai|bombay,19.0760,72.8777,city,Asia/Kolkata
+Delhi,delhi|new delhi|ncr,28.6139,77.2090,city,Asia/Kolkata
+Bengaluru,bengaluru|bangalore,12.9716,77.5946,city,Asia/Kolkata
+Hyderabad,hyderabad,17.3850,78.4867,city,Asia/Kolkata
+Chennai,chennai|madras,13.0827,80.2707,city,Asia/Kolkata
+London,london|greater london,51.5074,-0.1278,city,Europe/London
+New York,new york|nyc|new york city,40.7128,-74.0060,city,America/New_York
+Singapore,singapore|sg,1.3521,103.8198,city,Asia/Singapore
+Dubai,dubai|dxb,25.2048,55.2708,city,Asia/Dubai
+Tokyo,tokyo,35.6762,139.6503,city,Asia/Tokyo
+Sydney,sydney,33.8688,151.2093,city,Australia/Sydney
+Frankfurt,frankfurt|frankfurt am main,50.1109,8.6821,city,Europe/Berlin
+Paris,paris,48.8566,2.3522,city,Europe/Paris
+San Francisco,san francisco|sf|bay area,37.7749,-122.4194,city,America/Los_Angeles

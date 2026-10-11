@@ -1,0 +1,19 @@
+# Speed and Distance Thresholds for Signal S2
+travel_speed_kmh: 900.0
+travel_min_distance_km: 50.0
+
+# Sensitive Action Post-Login Window for Signal S4 (minutes)
+sensitive_window_minutes: 30
+
+# Unusual Hour Detection Thresholds for Signal S3
+rare_hour_share: 0.02
+min_active_days_hours_signal: 5
+
+# Profile and Evidence Thresholds (R4, R7)
+min_events_sufficient: 20
+min_active_days_sufficient: 5
+new_device_logins_to_trust: 3
+
+# Session Configuration (R11)
+session_inactivity_timeout_minutes: 30
+clock_skew_tolerance_minutes: 5
