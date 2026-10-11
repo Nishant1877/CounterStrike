@@ -2,6 +2,7 @@
 IdentityGuard (A-03, Domain 2) - Comprehensive Hackathon Defense & Master System Dossier Generator.
 Generates an exhaustive, multi-page professional PDF covering every architecture layer, pipeline step,
 signal formula, UI click action, AI advisory contract, security guarantee, and judge Q&A defense.
+Expanded with minute code-level function traces, algorithmic variables, database schemas, and mathematical proofs.
 """
 
 import os
@@ -77,28 +78,28 @@ def create_dossier():
         'DocTitle',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=24,
-        leading=28,
+        fontSize=22,
+        leading=26,
         textColor=colors.HexColor('#0f172a'),
-        spaceAfter=8
+        spaceAfter=6
     )
 
     subtitle_style = ParagraphStyle(
         'DocSub',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=12,
-        leading=16,
-        textColor=colors.HexColor('#3b82f6'),
-        spaceAfter=20
+        fontSize=11,
+        leading=15,
+        textColor=colors.HexColor('#2563eb'),
+        spaceAfter=16
     )
 
     h1_style = ParagraphStyle(
         'Heading1_Custom',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=15,
-        leading=18,
+        fontSize=14,
+        leading=17,
         textColor=colors.HexColor('#0f172a'),
         spaceBefore=14,
         spaceAfter=6,
@@ -109,7 +110,7 @@ def create_dossier():
         'Heading2_Custom',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=11,
+        fontSize=10.5,
         leading=14,
         textColor=colors.HexColor('#1e3a8a'),
         spaceBefore=10,
@@ -121,33 +122,33 @@ def create_dossier():
         'Body_Custom',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=9,
-        leading=13,
+        fontSize=8.5,
+        leading=12.5,
         textColor=colors.HexColor('#334155'),
-        spaceAfter=6
+        spaceAfter=5
     )
 
     code_style = ParagraphStyle(
         'Code_Custom',
         parent=styles['Normal'],
         fontName='Courier',
-        fontSize=8,
-        leading=11,
+        fontSize=7.5,
+        leading=10.5,
         textColor=colors.HexColor('#0f172a'),
         backColor=colors.HexColor('#f1f5f9'),
-        borderPadding=6,
-        spaceBefore=4,
-        spaceAfter=6
+        borderPadding=5,
+        spaceBefore=3,
+        spaceAfter=5
     )
 
     qa_q_style = ParagraphStyle(
         'QA_Q',
         parent=styles['Normal'],
         fontName='Helvetica-Bold',
-        fontSize=9.5,
-        leading=13,
+        fontSize=9,
+        leading=12.5,
         textColor=colors.HexColor('#b91c1c'),
-        spaceBefore=6,
+        spaceBefore=7,
         spaceAfter=2,
         keepWithNext=True
     )
@@ -156,23 +157,23 @@ def create_dossier():
         'QA_A',
         parent=styles['Normal'],
         fontName='Helvetica',
-        fontSize=9,
-        leading=13,
+        fontSize=8.5,
+        leading=12,
         textColor=colors.HexColor('#1e293b'),
-        spaceAfter=8
+        spaceAfter=7
     )
 
     callout_style = ParagraphStyle(
         'Callout',
         parent=styles['Normal'],
         fontName='Helvetica-Oblique',
-        fontSize=8.5,
-        leading=12,
+        fontSize=8,
+        leading=11.5,
         textColor=colors.HexColor('#1e40af'),
         backColor=colors.HexColor('#eff6ff'),
-        borderPadding=8,
-        spaceBefore=6,
-        spaceAfter=8
+        borderPadding=7,
+        spaceBefore=5,
+        spaceAfter=7
     )
 
     story = []
@@ -180,10 +181,10 @@ def create_dossier():
     # =========================================================================
     # SECTION 1: COVER & EXECUTIVE SUMMARY
     # =========================================================================
-    story.append(Spacer(1, 15))
+    story.append(Spacer(1, 10))
     story.append(Paragraph("IdentityGuard (A-03, Domain 2)", title_style))
-    story.append(Paragraph("Master Technical Architecture, Deep-Dive Function Guide & Hackathon Defense Dossier", subtitle_style))
-    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#2563eb'), spaceBefore=0, spaceAfter=14))
+    story.append(Paragraph("Exhaustive Technical Architecture, Micro-Trace Code Specification & Hackathon Defense Dossier", subtitle_style))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=colors.HexColor('#2563eb'), spaceBefore=0, spaceAfter=12))
 
     exec_summary_text = (
         "<b>Executive Summary & Problem Statement:</b> In contemporary financial and zero-trust applications, "
@@ -193,11 +194,11 @@ def create_dossier():
         "deterministic, evidence-aware session anomaly evaluation based strictly on 5 minimal ingress fields. "
         "It features mathematically rigorous behavioral profiling, a 100% deterministic YAML rule engine, an immutable "
         "cryptographic SHA-256 audit ledger (R8), air-gapped sandboxed replay determinism (R10), terminal session revocation (R11), "
-        "and strictly advisory AI threat intelligence (R9). This document serves as the exhaustive reference for every function, "
-        "state transition, UI action, algorithm, and defense answer for judges."
+        "and strictly advisory AI threat intelligence (R9). This document provides an exhaustive, function-by-function trace "
+        "of every class, algorithmic equation, database schema, click action, and theoretical proof required to address jury scrutiny."
     )
     story.append(Paragraph(exec_summary_text, body_style))
-    story.append(Spacer(1, 8))
+    story.append(Spacer(1, 6))
 
     meta_table_data = [
         [Paragraph("<b>Author / System:</b>", body_style), Paragraph("IdentityGuard Core Architecture Team", body_style),
@@ -212,104 +213,147 @@ def create_dossier():
         ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#f8fafc')),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
         ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#e2e8f0')),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
     story.append(t_meta)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # =========================================================================
-    # SECTION 2: END-TO-END SYSTEM ARCHITECTURE & 5-STAGE LIFECYCLE
+    # SECTION 2: END-TO-END SYSTEM ARCHITECTURE & 11 PIPELINE STEPS
     # =========================================================================
-    story.append(Paragraph("1. High-Level Architectural Pipeline & Event Lifecycle", h1_style))
+    story.append(Paragraph("1. High-Level Architectural Pipeline: The 11 Micro-Steps of core/pipeline.py", h1_style))
     story.append(Paragraph(
-        "Every event ingested into IdentityGuard flows through a strictly ordered 5-stage synchronous pipeline before a response decision is rendered. "
-        "The system operates under zero-trust assumptions: every incoming action must be verified against current session state and historical evidence.",
+        "Every event ingested into IdentityGuard flows through a strictly ordered 11-step synchronous execution pipeline in "
+        "<code>SecurityPipeline.process_event(...)</code>. The pipeline enforces zero-trust invariants: every event is scrutinized, "
+        "verified, and immutably recorded before any downstream execution occurs.",
         body_style
     ))
 
-    pipeline_stages_data = [
-        [Paragraph("<b>Stage</b>", body_style), Paragraph("<b>Component & Module</b>", body_style), Paragraph("<b>Mathematical / Logical Responsibility</b>", body_style)],
+    pipeline_steps_data = [
+        [Paragraph("<b>Step #</b>", body_style), Paragraph("<b>Function & Module</b>", body_style), Paragraph("<b>Detailed Logic & State Transitions</b>", body_style)],
         [
-            Paragraph("<b>Stage 1</b><br/>Ingress & Normalization", body_style),
-            Paragraph("core/normalize.py<br/>core/ordering.py", body_style),
-            Paragraph("Enforces the strict 5-field contract (timestamp, user, device_id, location_label, action). Rejects non-conforming events. Resolves geo-labels to coordinates via Haversine resolution table. Detects and tags late/out-of-order events (R6).", body_style)
+            Paragraph("<b>Step 1</b><br/>Normalization & Ingress", body_style),
+            Paragraph("<code>Normalizer.normalize</code><br/>(core/normalize.py)", body_style),
+            Paragraph("Validates strict 5-field contract (timestamp, user, session_id, device_id, location_label). Enforces ISO-8601 UTC parsing. Resolves geo-aliases (e.g., 'Pune' &rarr; 'Pune, India' [18.5204, 73.8567]). If payload violates contract, inserts row into <code>QuarantineModel</code> and raises HTTP 422.", body_style)
         ],
         [
-            Paragraph("<b>Stage 2</b><br/>Deterministic Signal Extraction", body_style),
-            Paragraph("core/signals/s1_device.py<br/>core/signals/s2_location.py<br/>core/signals/s3_hour.py<br/>core/signals/s4_sensitive.py", body_style),
-            Paragraph("Computes S1 (Unfamiliar Device), S2 (Implausible Travel Velocity via Great-Circle distance/delta-t), S3 (Unusual Hour via Gaussian smoothed histogram), and S4 (Sensitive Action immediately following login). Computes evidence level (cold-start vs established).", body_style)
+            Paragraph("<b>Step 2</b><br/>Session Gate & R11 Terminal Check", body_style),
+            Paragraph("<code>SessionGate</code><br/>(core/pipeline.py)", body_style),
+            Paragraph("Queries <code>SessionModel</code> by session_id. If <code>status == 'revoked'</code>, instantly short-circuits execution: generates decision <code>REFUSED_SESSION_REVOKED</code>, logs refusal to <code>AuditLedger</code>, and returns. No signals are computed; no profile learning occurs.", body_style)
         ],
         [
-            Paragraph("<b>Stage 3</b><br/>Rules & Precedence Resolution", body_style),
-            Paragraph("core/rules/dsl.py<br/>core/rules/engine.py<br/>config/rules.yaml", body_style),
-            Paragraph("Evaluates declarative YAML rule specifications against extracted signals. Enforces strict precedence: REVOKE > STEP_UP > ANALYST_REVIEW > NO_ACTION. Resolves caveats when evidence is limited (R3/R5).", body_style)
+            Paragraph("<b>Step 3</b><br/>Temporal Ordering Check (R6)", body_style),
+            Paragraph("<code>OrderingHandler.check_ordering</code><br/>(core/ordering.py)", body_style),
+            Paragraph("Compares event timestamp \\(t_{\\text{event}}\\) against user's watermarked \\(t_{\\text{max}}\\). If \\(t_{\\text{event}} < t_{\\text{max}} - 300\\text{s}\\), classifies as <code>LATE</code>; if within tolerance window, classifies as <code>OUT_OF_ORDER</code>. Late events are flagged and isolated to prevent skewing active behavioral models.", body_style)
         ],
         [
-            Paragraph("<b>Stage 4</b><br/>Cryptographic State Mutation", body_style),
-            Paragraph("store/audit.py<br/>store/models.py", body_style),
-            Paragraph("If REVOKE is triggered, terminal state is recorded in SessionModel. An immutable SHA-256 chained entry is appended to AuditLedger: hash(prev_hash + actor + action + target + timestamp). Once revoked, all subsequent calls trigger R11 REFUSED.", body_style)
+            Paragraph("<b>Step 4</b><br/>Point-in-Time Profile Retrieval", body_style),
+            Paragraph("<code>ProfileManager.get_or_create</code><br/>(core/profile.py)", body_style),
+            Paragraph("Retrieves point-in-time user baseline. Calculates evidence tier based on active calendar days and event volume (COLD_START, LIMITED, or ESTABLISHED). Prepares session context: login timestamp, login device familiarity, and prior sensitive actions in current session.", body_style)
         ],
         [
-            Paragraph("<b>Stage 5</b><br/>Broadcasting & Advisory AI", body_style),
-            Paragraph("core/streaming.py<br/>core/advisory/guard.py<br/>core/explain/gemini_forensics.py", body_style),
-            Paragraph("Publishes decision envelope to SSE (/api/stream/events) and WebSocket subscribers. Evaluates Markov advisory graph with compile/runtime guardrails (R9). Synthesizes MITRE ATT&CK forensic mapping offline or via Gemini 2.5.", body_style)
+            Paragraph("<b>Step 5</b><br/>Deterministic Signal Extraction", body_style),
+            Paragraph("<code>s1_detector .. s6_detector</code><br/>(core/signals/*.py)", body_style),
+            Paragraph("Executes S1 (Device Familiarity), S2 (Implausible Travel Velocity via Haversine), S3 (Unusual Hour via Gaussian Circular Kernel), S4 (Sensitive Action window post-login), S5 (Frequent Location), and S6 (Rapid Action Frequency). Yields normalized dictionary of <code>SignalResult</code> objects.", body_style)
+        ],
+        [
+            Paragraph("<b>Step 6</b><br/>AI Advisory Sequence Modeling (R9)", body_style),
+            Paragraph("<code>MarkovAdvisor.evaluate_sequence</code><br/>(core/advisory/markov.py)", body_style),
+            Paragraph("Extracts action sequence trace for active session. Computes Markov chain transition probability \\(P(a_t \\mid a_{t-1})\\). If transition is unknown or \\(P < 0.01\\), emits advisory anomaly signal. Does not have voting power to revoke sessions.", body_style)
+        ],
+        [
+            Paragraph("<b>Step 7</b><br/>AST Rule Evaluation & Precedence (R5)", body_style),
+            Paragraph("<code>RuleEngine.evaluate</code><br/>(core/rules/engine.py)", body_style),
+            Paragraph("Evaluates compiled predicate tree from config/rules.yaml. Verifies runtime AI guardrail (suppresses advisory firing if no deterministic signal active). Resolves caveat fallbacks for cold-start users. Determines winning response based on strict precedence.", body_style)
+        ],
+        [
+            Paragraph("<b>Step 8</b><br/>State Machine Mutation", body_style),
+            Paragraph("<code>SecurityPipeline.execute_state</code><br/>(core/pipeline.py)", body_style),
+            Paragraph("If REVOKE: updates SessionModel to 'revoked', sets revoked_at, appends to <code>AuditLedger</code>. If STEP_UP: sets session to 'pending_verification', generates row in <code>StepUpChallengeModel</code>. If ANALYST_REVIEW: creates ticket in <code>ReviewCaseModel</code>.", body_style)
+        ],
+        [
+            Paragraph("<b>Step 9</b><br/>Multi-Tier Plain English (R7)", body_style),
+            Paragraph("<code>ExplanationGenerator</code><br/>(core/explain/templates.py)", body_style),
+            Paragraph("Generates structured explanations across three distinct audiences: User Notification (concise, actionable), Analyst Briefing (technical signals and rules), and Regulatory Audit Note (deterministic causality proof).", body_style)
+        ],
+        [
+            Paragraph("<b>Step 10</b><br/>Profile Learning & Evolution", body_style),
+            Paragraph("<code>UserProfile.record_event</code><br/>(core/profile.py)", body_style),
+            Paragraph("If event is NOT revoked and NOT late: increments user active days, updates 24-hr diurnal activity histogram, updates Markov transition matrix, and advances device trust progression (login count and calendar day span).", body_style)
+        ],
+        [
+            Paragraph("<b>Step 11</b><br/>Real-Time Broadcast Pub/Sub", body_style),
+            Paragraph("<code>EventBroadcaster.publish</code><br/>(core/streaming.py)", body_style),
+            Paragraph("Encapsulates evaluated decision into standardized JSON envelope. Dispatches event non-blockingly to Server-Sent Events subscribers (/api/stream/events) and WebSocket connections (/api/ws/events) for zero-latency SOC visualization.", body_style)
         ]
     ]
-    t_stages = Table(pipeline_stages_data, colWidths=[90, 130, 284])
-    t_stages.setStyle(TableStyle([
+    t_steps = Table(pipeline_steps_data, colWidths=[80, 130, 294])
+    t_steps.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e2e8f0')),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
         ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('TOPPADDING', (0,0), (-1,-1), 5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
-    story.append(t_stages)
-    story.append(Spacer(1, 12))
+    story.append(t_steps)
+    story.append(Spacer(1, 10))
 
     # =========================================================================
-    # SECTION 3: DEEP-DIVE INTO THE CORE REPUTATION & SIGNAL ALGORITHMS
+    # SECTION 3: MATHEMATICAL DERIVATION & SIGNAL FORMULAS (S1 - S6)
     # =========================================================================
-    story.append(Paragraph("2. Mathematical Formulation of Detection Signals (S1 - S4)", h1_style))
+    story.append(Paragraph("2. Mathematical Formulation & Algorithmic Rigor of Signals (S1 - S6)", h1_style))
     story.append(Paragraph(
-        "A cornerstone requirement of Domain 2 is zero black-box obscurity. Every signal is deterministically derived from empirical data:",
+        "A critical criterion in Domain 2 is the complete rejection of black-box heuristics. Every signal in IdentityGuard is governed "
+        "by explicit, deterministic mathematical equations:",
         body_style
     ))
 
     story.append(Paragraph("<b>Signal S1: Device Familiarity & Trust Progression (core/signals/s1_device.py)</b>", h2_style))
     story.append(Paragraph(
-        "• Tracks device identifier against the user's ProfileDevice registry.<br/>"
-        "• Progression States: <i>unknown</i> (0 prior logins) &rarr; <i>unfamiliar</i> (1-2 prior logins) &rarr; <i>verified/known</i> (3+ logins across distinct calendar days).<br/>"
-        "• If device_id is missing or absent in payload: Defaults safely to <i>unfamiliar</i> with an added metadata warning flag.",
+        "• Let \\(D\\) be the set of registered devices for user \\(u\\). For each device \\(d_i \\in D\\), the system maintains login count \\(L(d_i)\\) and the set of unique active calendar dates \\(T(d_i)\\).<br/>"
+        "• <b>State Equation:</b><br/>"
+        "&nbsp;&nbsp;&nbsp;&nbsp;\\(\\text{State}(d_i) = \\begin{cases} "
+        "\\text{unknown}, & \\text{if } L(d_i) = 0 \\\\ "
+        "\\text{unfamiliar}, & \\text{if } 1 \\le L(d_i) < 3 \\text{ or } |T(d_i)| < 2 \\\\ "
+        "\\text{verified/known}, & \\text{if } L(d_i) \\ge 3 \\text{ and } |T(d_i)| \\ge 2 "
+        "\\end{cases}\\)<br/>"
+        "• <b>Trigger Condition:</b> If \\(\\text{State}(d_{\\text{event}}) \\ne \\text{verified/known}\\), signal S1 fires as <i>UNFAMILIAR_DEVICE</i>.<br/>"
+        "• Missing Device Handling: If <code>device_id</code> is null/empty in raw egress, the normalizer populates 'dev_unknown' and sets <code>missing_device_flag = True</code>.",
         body_style
     ))
 
     story.append(Paragraph("<b>Signal S2: Implausible Travel Velocity (core/signals/s2_location.py)</b>", h2_style))
     story.append(Paragraph(
-        "• Computes the Great-Circle distance between the current event location \\((\\phi_2, \\lambda_2)\\) and previous recorded event location \\((\\phi_1, \\lambda_1)\\) using the Haversine formula:<br/>"
-        "&nbsp;&nbsp;&nbsp;&nbsp;\\(a = \\sin^2(\\Delta\\phi / 2) + \\cos(\\phi_1)\\cos(\\phi_2)\\sin^2(\\Delta\\lambda / 2)\\)<br/>"
-        "&nbsp;&nbsp;&nbsp;&nbsp;\\(d = 2 R \\cdot \\text{atan2}(\\sqrt{a}, \\sqrt{1-a})\\), where \\(R = 6,371\\text{ km}\\).<br/>"
-        "• Computes effective velocity: \\(V = \\frac{d}{\\Delta t}\\) (km/h).<br/>"
-        "• <b>Trigger Condition:</b> If \\(V > 750\\text{ km/h}\\) (configurable via policy) and \\(\\Delta t < 7,200\\text{ s}\\), signal S2 triggers as <i>IMPLAUSIBLE_TRAVEL_VELOCITY</i>.<br/>"
-        "• Edge Case Handling: If \\(\\Delta t \\le 0\\) (simultaneous logins) and \\(d > 50\\text{ km}\\), velocity is mathematically undefined and instantly fires an emergency collision anomaly.",
+        "• Given current event location \\(P_2 = (\\phi_2, \\lambda_2)\\) at timestamp \\(t_2\\) and last recorded event location \\(P_1 = (\\phi_1, \\lambda_1)\\) at timestamp \\(t_1\\):<br/>"
+        "• <b>Great-Circle Haversine Formulation:</b><br/>"
+        "&nbsp;&nbsp;&nbsp;&nbsp;\\(\\Delta\\phi = \\phi_2 - \\phi_1, \\quad \\Delta\\lambda = \\lambda_2 - \\lambda_1\\)<br/>"
+        "&nbsp;&nbsp;&nbsp;&nbsp;\\(a = \\sin^2\\left(\\frac{\\Delta\\phi}{2}\\right) + \\cos(\\phi_1)\\cos(\\phi_2)\\sin^2\\left(\\frac{\\Delta\\lambda}{2}\\right)\\)<br/>"
+        "&nbsp;&nbsp;&nbsp;&nbsp;\\(d(P_1, P_2) = 2 R \\cdot \\arctan2\\left(\\sqrt{a}, \\sqrt{1-a}\\right), \\quad R = 6,371.0088\\text{ km}\\)<br/>"
+        "• <b>Velocity Derivation:</b> \\(V = \\frac{d(P_1, P_2)}{\\Delta t}\\) where \\(\\Delta t = \\frac{t_2 - t_1}{3600}\\text{ hours}\\).<br/>"
+        "• <b>Trigger Condition:</b> If \\(V > 750.0\\text{ km/h}\\) (configurable via policy) and \\(\\Delta t < 2.0\\text{ hours}\\), S2 triggers as <i>IMPLAUSIBLE_TRAVEL_VELOCITY</i>.<br/>"
+        "• <b>Singularity Handling:</b> If \\(t_2 - t_1 \\le 0\\) and \\(d(P_1, P_2) > 50\\text{ km}\\), \\(V \\to \\infty\\); the engine instantly flags an <i>IMPOSSIBLE_TRAVEL_COLLISION</i>.",
         body_style
     ))
 
-    story.append(Paragraph("<b>Signal S3: Unusual Hour Diurnal Distribution (core/signals/s3_hour.py)</b>", h2_style))
+    story.append(Paragraph("<b>Signal S3: Circular Gaussian Diurnal Activity Distribution (core/signals/s3_hour.py)</b>", h2_style))
     story.append(Paragraph(
-        "• Rather than coarse rigid buckets (e.g. 9-5 vs night), IdentityGuard maintains a 24-hour circular empirical histogram \\(H[h]\\) for each user in their home timezone.<br/>"
-        "• Applies circular Gaussian Kernel Smoothing over the 24-hour ring with variance \\(\\sigma = 1.5\\text{ hours}\\):<br/>"
-        "&nbsp;&nbsp;&nbsp;&nbsp;\\(P_{\\text{smooth}}(h) = \\frac{1}{Z} \\sum_{k=0}^{23} H[k] \\cdot \\exp\\left(-\\frac{\\min(|h-k|, 24-|h-k|)^2}{2\\sigma^2}\\right)\\)<br/>"
-        "• <b>Trigger Condition:</b> If \\(P_{\\text{smooth}}(h_{\\text{event}}) < 0.05\\) (less than 5% probability mass) and user evidence level is <i>established</i> (at least 5 days of history), signal S3 fires.",
+        "• Discrete hourly buckets create edge-case false positives (e.g., an event at 23:59 vs 00:01). IdentityGuard maps the 24-hour cycle onto a continuous circular ring \\(\\mathbb{Z}_{24}\\).<br/>"
+        "• Let \\(H[k]\\) be the user's historical event frequency for hour \\(k \\in \\{0, 1, \\dots, 23\\}\\).<br/>"
+        "• <b>Circular Gaussian Kernel Smoothing:</b><br/>"
+        "&nbsp;&nbsp;&nbsp;&nbsp;\\(P_{\\text{smooth}}(h) = \\frac{1}{Z} \\sum_{k=0}^{23} H[k] \\cdot \\exp\\left(-\\frac{\\min\\left(|h - k|, 24 - |h - k|\\right)^2}{2\\sigma^2}\\right), \\quad \\sigma = 1.5\\text{ hours}\\)<br/>"
+        "&nbsp;&nbsp;&nbsp;&nbsp;where normalization constant \\(Z = \\sum_{h=0}^{23} P_{\\text{smooth}}(h)\\).<br/>"
+        "• <b>Trigger Condition:</b> If \\(P_{\\text{smooth}}(h_{\\text{event}}) < 0.05\\) (under 5% probability mass) and \\(\\text{EvidenceLevel} == \\text{ESTABLISHED}\\), S3 triggers.",
         body_style
     ))
 
-    story.append(Paragraph("<b>Signal S4: Sensitive Action Immediately Following Login (core/signals/s4_sensitive.py)</b>", h2_style))
+    story.append(Paragraph("<b>Signal S4: Sensitive Action Post-Login Window (core/signals/s4_sensitive.py)</b>", h2_style))
     story.append(Paragraph(
-        "• Inspects event action against config/sensitive_actions.yaml (e.g. <i>transfer_funds</i>, <i>update_email</i>, <i>change_password</i>, <i>export_statement</i>).<br/>"
-        "• Checks elapsed duration since the session's initial <i>login</i> event: \\(\\Delta t_{\\text{login}} = t_{\\text{event}} - t_{\\text{login}}\\).<br/>"
-        "• If \\(\\Delta t_{\\text{login}} < 600\\text{ seconds}\\) (10 minutes) and device is unfamiliar or untrusted, S4 fires, identifying automated credential stuffing or scripted account looting.",
+        "• Let \\(A_{\\text{sens}}\\) be the defined set of high-consequence administrative actions in config/sensitive_actions.yaml.<br/>"
+        "• Let \\(t_{\\text{login}}\\) be the timestamp of the session's initial <code>login</code> event.<br/>"
+        "• <b>Equation:</b> \\(\\Delta t_{\\text{post\\_login}} = t_{\\text{event}} - t_{\\text{login}}\\).<br/>"
+        "• <b>Trigger Condition:</b> If \\(\\text{action} \\in A_{\\text{sens}}\\) and \\(\\Delta t_{\\text{post\\_login}} \\le 600\\text{ seconds}\\) (10 minutes) and device is <i>unfamiliar</i>, S4 fires as <i>SENSITIVE_ACTION_POST_LOGIN</i>.",
         body_style
     ))
     story.append(Spacer(1, 10))
@@ -324,126 +368,126 @@ def create_dossier():
     ))
 
     r_table_data = [
-        [Paragraph("<b>Invariant</b>", body_style), Paragraph("<b>Strict Regulatory Meaning</b>", body_style), Paragraph("<b>How Code Enforces It</b>", body_style)],
+        [Paragraph("<b>Invariant</b>", body_style), Paragraph("<b>Strict Regulatory Meaning</b>", body_style), Paragraph("<b>Exact Code Enforcement</b>", body_style)],
         [
             Paragraph("<b>R1</b>: Strict 5-Field Ingress", body_style),
             Paragraph("System must accept exclusively: timestamp, user, session_id, device_id, location_label.", body_style),
-            Paragraph("Pydantic RawEventInput validates schema. Extraneous or missing primary fields are rejected with HTTP 422.", body_style)
+            Paragraph("<code>RawEventInput</code> (Pydantic v2). Excess or missing primary keys are rejected immediately with HTTP 422.", body_style)
         ],
         [
             Paragraph("<b>R2</b>: Deterministic Signals", body_style),
             Paragraph("Signal outputs must be identical across repeated runs on the same input.", body_style),
-            Paragraph("Stateless mathematical functions with no stochastic sampling or unseeded random logic.", body_style)
+            Paragraph("Pure mathematical functions in <code>core/signals/</code>. Zero random seeds, zero unseeded state mutations.", body_style)
         ],
         [
             Paragraph("<b>R3</b>: Evidence-Aware Cold Start", body_style),
             Paragraph("New users (< 5 days history) cannot have high-confidence baseline profiles.", body_style),
-            Paragraph("ProfileManager calculates active_days and total_events. If below threshold, evidence_level is marked LIMITED or COLD_START.", body_style)
+            Paragraph("<code>UserProfile.get_evidence_level()</code> returns NONE, COLD_START, LIMITED, or ESTABLISHED based on active days and volume.", body_style)
         ],
         [
             Paragraph("<b>R4</b>: Declarative YAML Rules", body_style),
             Paragraph("Detection rules must be human-readable, auditable YAML, not hardcoded conditionals.", body_style),
-            Paragraph("RuleEngine parses config/rules.yaml into AST nodes with compiled predicate trees.", body_style)
+            Paragraph("<code>RuleEngine.load_rules</code> parses <code>config/rules.yaml</code> into an AST condition tree with boolean logic.", body_style)
         ],
         [
             Paragraph("<b>R5</b>: Strict Precedence", body_style),
             Paragraph("When multiple rules fire, conflict resolution must strictly enforce severity hierarchy.", body_style),
-            Paragraph("Precedence order: REVOKE (100) > STEP_UP (75) > ANALYST_REVIEW (50) > NO_ACTION (10).", body_style)
+            Paragraph("<code>RuleEngine.evaluate</code> resolves winning action: REVOKE (100) > STEP_UP (75) > ANALYST_REVIEW (50) > NO_ACTION (10).", body_style)
         ],
         [
             Paragraph("<b>R6</b>: Late / Out-of-Order Events", body_style),
             Paragraph("Network lag or batch replay of historical events must not corrupt live profiles.", body_style),
-            Paragraph("OrderingHandler buffers and sequences events by timestamp; tags late events without profile distortion.", body_style)
+            Paragraph("<code>OrderingHandler</code> tags late events (\\(t < t_{\\text{max}} - 300\\text{s}\\)). Late events are evaluated but excluded from profile evolution.", body_style)
         ],
         [
             Paragraph("<b>R7</b>: Multi-Tier Plain English", body_style),
             Paragraph("Every decision must provide plain English explanations tailored to user, analyst, and audit.", body_style),
-            Paragraph("ExplanationGenerator renders structured sentences citing triggering rule, signals, and evidence.", body_style)
+            Paragraph("<code>ExplanationGenerator</code> builds three distinct plain-English outputs per evaluation.", body_style)
         ],
         [
             Paragraph("<b>R8</b>: Cryptographic Audit Trail", body_style),
             Paragraph("Every administrative action and revocation must be immutably hashed and chained.", body_style),
-            Paragraph("AuditLedger records row_hash = SHA256(prev_hash + actor + action + target + state + ts).", body_style)
+            Paragraph("<code>AuditLedger.append_entry</code> records \\(\\text{row\\_hash} = \\text{SHA-256}(\\text{prev\\_hash} \\mathbin{\\Vert} \\text{actor} \\dots)\\).", body_style)
         ],
         [
             Paragraph("<b>R9</b>: AI Advisory Guard", body_style),
             Paragraph("AI/ML outputs may NEVER unilaterally revoke a session or trigger punitive action.", body_style),
-            Paragraph("MarkovAdvisor / Gemini Forensics are strictly gated: cannot revoke without deterministic signal support.", body_style)
+            Paragraph("Compile-time (<code>validate_rule_set</code>) and runtime (<code>RuntimeAdvisoryGuard</code>) dual barriers block punitive actions.", body_style)
         ],
         [
             Paragraph("<b>R10</b>: Sandboxed Replay", body_style),
             Paragraph("Analyst replay of historical event slices must produce bit-exact decision stream hashes.", body_style),
-            Paragraph("ReplayPipeline runs in an isolated in-memory DB; computes SHA-256 stream hash over ordered decisions.", body_style)
+            Paragraph("<code>ReplayRunner</code> executes in an isolated in-memory SQLite DB, computing SHA-256 over ordered decisions.", body_style)
         ],
         [
             Paragraph("<b>R11</b>: Terminal Session Revocation", body_style),
             Paragraph("Once revoked, any subsequent event in that session MUST be rejected immediately.", body_style),
-            Paragraph("Pipeline checks session status first: if status == 'revoked', returns REFUSED_SESSION_REVOKED (HTTP 403).", body_style)
+            Paragraph("<code>SessionGate</code> checks <code>SessionModel.status == 'revoked'</code>, immediately returning REFUSED_SESSION_REVOKED (HTTP 403).", body_style)
         ]
     ]
-    t_r = Table(r_table_data, colWidths=[100, 190, 214])
+    t_r = Table(r_table_data, colWidths=[90, 180, 234])
     t_r.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e2e8f0')),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
         ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
     story.append(t_r)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # =========================================================================
     # SECTION 5: FRONTEND INTERFACE & "WHAT HAPPENS ON CLICK" MATRIX
     # =========================================================================
     story.append(Paragraph("4. Frontend Interface Architecture & Click Action Breakdown", h1_style))
     story.append(Paragraph(
-        "The frontend is a lightweight, human-crafted single-page application communicating synchronously via REST and asynchronously "
-        "via Server-Sent Events (SSE). Below is the exact technical trace of what occurs upon every button click in the UI:",
+        "The dashboard (dashboard/static/index.html) is a lightweight, responsive SPA communicating synchronously via REST "
+        "and asynchronously via Server-Sent Events (SSE). Below is the exact technical trace of what occurs upon every button click in the UI:",
         body_style
     ))
 
     click_data = [
-        [Paragraph("<b>UI Element & Click Action</b>", body_style), Paragraph("<b>Frontend Event & Endpoint Call</b>", body_style), Paragraph("<b>Complete Backend & System Trace</b>", body_style)],
+        [Paragraph("<b>UI Element & Click Action</b>", body_style), Paragraph("<b>Frontend Function & Endpoint</b>", body_style), Paragraph("<b>Complete Backend & System Trace</b>", body_style)],
         [
             Paragraph("<b>Top Tab: 'Radar'</b><br/>(Live Feed)", body_style),
-            Paragraph("switchTab('feed')<br/>GET /api/decisions?limit=60", body_style),
+            Paragraph("<code>switchTab('feed')</code><br/>GET /api/decisions?limit=60", body_style),
             Paragraph("Switches active view. Queries DecisionModel table in SQLite ordered by created_at desc. Binds SSE event listener to /api/stream/events so new events automatically prepend with animation.", body_style)
         ],
         [
             Paragraph("<b>Top Tab: 'Threat Map'</b>", body_style),
-            Paragraph("switchTab('threatmap')<br/>GET /api/decisions?limit=50", body_style),
-            Paragraph("Initializes or resizes the Leaflet dark map container. Extracts geo-locations from decisions, plots green markers for baseline logins, red markers for attacks, and draws dashed velocity corridors between Pune and London/NY.", body_style)
+            Paragraph("<code>switchTab('threatmap')</code><br/>GET /api/decisions?limit=50", body_style),
+            Paragraph("Initializes or resizes Leaflet dark map container. Extracts geo-locations from decisions, plots green markers for baseline logins, red markers for attacks, and draws dashed velocity corridors between Pune and London/NY.", body_style)
         ],
         [
             Paragraph("<b>Top Tab: 'Sessions'</b>", body_style),
-            Paragraph("switchTab('sessions')<br/>GET /api/sessions", body_style),
+            Paragraph("<code>switchTab('sessions')</code><br/>GET /api/sessions", body_style),
             Paragraph("Fetches all active and revoked sessions across SQLite SessionModel and in-memory engine. Populates table with device, last action, user, and active status.", body_style)
         ],
         [
             Paragraph("<b>Button: 'Revoke'</b><br/>(in Sessions Tab)", body_style),
-            Paragraph("triggerEmergencyKill(sess_id)<br/>POST /api/sessions/revoke", body_style),
+            Paragraph("<code>triggerEmergencyKill(sess_id)</code><br/>POST /api/sessions/revoke", body_style),
             Paragraph("Prompts confirmation dialog. Sends JSON {session_id, reason}. Backend updates SessionModel.status='revoked', appends entry to AuditLedger, and broadcasts kill event. Downstream banking gateway immediately returns 403 on this session.", body_style)
         ],
         [
             Paragraph("<b>Top Tab: 'Profiles'</b>", body_style),
-            Paragraph("switchTab('profiles')<br/>GET /api/users/{user}/profile", body_style),
+            Paragraph("<code>switchTab('profiles')</code><br/>GET /api/users/{user}/profile", body_style),
             Paragraph("Retrieves user diurnal 24-hr array, device trust registry, and evidence tier. Destroys prior Chart.js instance and renders smoothed Gaussian probability curve.", body_style)
         ],
         [
             Paragraph("<b>Button: 'Replay'</b><br/>(in Scenarios Tab)", body_style),
-            Paragraph("executeAttackScenario(id)<br/>POST /api/scenarios/replay", body_style),
+            Paragraph("<code>executeAttackScenario(id)</code><br/>POST /api/scenarios/replay", body_style),
             Paragraph("Replays 4-step ATO chain (login &rarr; geo shift &rarr; sensitive update &rarr; fund transfer). Pipeline detects velocity and sensitive window, triggers step-up and terminal revoke. Fires celebratory confetti on successful threat interception.", body_style)
         ],
         [
             Paragraph("<b>Button: 'Simulate'</b><br/>(Header Modal)", body_style),
-            Paragraph("openSimulationModal()<br/>POST /api/events/evaluate", body_style),
+            Paragraph("<code>openSimulationModal()</code><br/>POST /api/events/evaluate", body_style),
             Paragraph("Opens modal form for manual 5-field event ingress or batch CSV/JSON upload. Evaluates live against detection engine and returns real-time risk score, signals, and plain-English explanation.", body_style)
         ],
         [
             Paragraph("<b>Button: 'Inspect &rarr;'</b><br/>(Feed Table Row)", body_style),
-            Paragraph("showDetail(decision)<br/>POST /api/decisions/{id}/forensics", body_style),
-            Paragraph("Opens modal with 3-tier explanation and signal breakdown. Clicking 'Synthesize Forensics' triggers Gemini 2.5 Flash (or offline heuristic fallback) to map adversary tactics to MITRE ATT&CK techniques.", body_style)
+            Paragraph("<code>showDetail(decision)</code><br/>POST /api/decisions/{id}/forensics", body_style),
+            Paragraph("Opens modal with 3-tier explanation and signal breakdown. Clicking 'Generate Forensics' triggers Gemini 2.5 Flash (or offline heuristic fallback) to map adversary tactics to MITRE ATT&CK techniques.", body_style)
         ],
         [
             Paragraph("<b>Button: 'Bank App'</b><br/>(Header Shortcut)", body_style),
@@ -451,17 +495,17 @@ def create_dossier():
             Paragraph("Opens the Apex Global Bank simulator. Any fund transfer or balance check is intercepted by IdentityGuard. If session is revoked, bank UI locks down with HTTP 403 Interception screen.", body_style)
         ]
     ]
-    t_click = Table(click_data, colWidths=[110, 140, 254])
+    t_click = Table(click_data, colWidths=[100, 130, 274])
     t_click.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#e2e8f0')),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
         ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
     story.append(t_click)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # =========================================================================
     # SECTION 6: AI ENGINE & STRICTLY ADVISORY SAFEGUARD (R9)
@@ -549,7 +593,7 @@ def create_dossier():
         story.append(Paragraph(f"<b>Q:</b> {q}", qa_q_style))
         story.append(Paragraph(f"<b>A:</b> {a}", qa_a_style))
 
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # =========================================================================
     # SECTION 9: VERIFICATION & AUDIT SIGN-OFF
@@ -580,11 +624,11 @@ def create_dossier():
         ('BACKGROUND', (0,-1), (-1,-1), colors.HexColor('#f1f5f9')),
         ('BOX', (0,0), (-1,-1), 0.5, colors.HexColor('#94a3b8')),
         ('INNERGRID', (0,0), (-1,-1), 0.5, colors.HexColor('#cbd5e1')),
-        ('TOPPADDING', (0,0), (-1,-1), 3.5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 3.5),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
     ]))
     story.append(t_test)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     story.append(Paragraph(
         "<b>Architectural Sign-off:</b> IdentityGuard v3.0 satisfies all theoretical, algorithmic, and engineering "
@@ -593,7 +637,7 @@ def create_dossier():
     ))
 
     # Build the PDF
-    print("[*] Generating master dossier PDF...")
+    print("[*] Generating expanded master dossier PDF...")
     doc.build(story, canvasmaker=NumberedCanvas)
     print(f"[+] Master Dossier PDF successfully built at: {PDF_OUTPUT_PATH}")
 
