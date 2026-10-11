@@ -276,3 +276,49 @@ def get_data_quality_metrics(db: Session = Depends(get_db)):
         "late_events": late_events,
         "clock_skew_events": clock_skew_events
     }
+
+
+@router.post("/decisions/{decision_id}/forensics")
+def generate_decision_forensics(
+    decision_id: str,
+    db: Session = Depends(get_db),
+    pipeline: SecurityPipeline = Depends(get_pipeline)
+):
+    """
+    POST /api/decisions/{id}/forensics (Stage C)
+    Generates deep AI forensic threat intelligence, adversary hypotheses,
+    and MITRE ATT&CK framework mapping for the specified decision.
+    Resilient offline fallback enabled. R9 Guard verified.
+    """
+    from core.explain.gemini_forensics import gemini_forensics
+
+    dec = db.query(DecisionModel).filter(DecisionModel.decision_id == decision_id).first()
+    if not dec:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Decision not found.")
+
+    dec_dict = {
+        "decision_id": dec.decision_id,
+        "event_id": dec.event_id,
+        "session_id": dec.session_id,
+        "user": dec.user,
+        "response": dec.response,
+        "deciding_rule": dec.deciding_rule,
+        "rules_fired": json.loads(dec.rules_fired_json),
+        "evidence_level": dec.evidence_level,
+        "evidence_statement": dec.evidence_statement,
+        "explanation": dec.explanation_text,
+        "signals": json.loads(dec.signals_json)
+    }
+
+    # Fetch user profile context if available
+    prof = pipeline.profile_manager.get_or_create(dec.user)
+    prof_dict = {
+        "total_events": prof.total_events,
+        "active_days": len(prof.active_days),
+        "home_location": prof.home_location,
+        "devices_count": len(prof.known_devices)
+    }
+
+    report = gemini_forensics.generate_report(dec_dict, prof_dict)
+    return report.model_dump()
+

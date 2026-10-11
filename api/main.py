@@ -49,13 +49,17 @@ app.include_router(compat_router)
 @app.get("/health", tags=["Health"])
 @app.get("/api/health", tags=["Health"])
 def health_check():
+    import os
+    gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     return {
         "status": "healthy",
         "service": "IdentityGuard A-03 Engine",
-        "gemini_enabled": False,
+        "gemini_enabled": bool(gemini_key),
+        "forensic_intelligence": "active" if gemini_key else "offline-heuristic-resilient",
         "active_users": len(compat_engine.user_histories),
         "revoked_sessions_count": len(compat_engine.revoked_sessions)
     }
+
 
 
 # Mount static frontend files (Analyst SOC & Protected Bank App)

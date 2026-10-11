@@ -611,7 +611,7 @@
         </div>
         <div class="space-y-1">
           <div class="text-slate-400 font-semibold">Signals Evaluated:</div>
-          <div class="space-y-1 max-h-40 overflow-y-auto font-mono text-[11px]">
+          <div class="space-y-1 max-h-36 overflow-y-auto font-mono text-[11px]">
             ${(dec.signals || []).map(s => `
               <div class="p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center">
                 <span>${s.name} (${s.signal_id})</span>
@@ -620,9 +620,96 @@
             `).join('')}
           </div>
         </div>
+
+        <!-- Stage C: Gemini 2.5 LLM Forensics Drilldown -->
+        <div class="pt-2 border-t border-slate-800">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold text-indigo-400 flex items-center space-x-1.5">
+              <i class="fa-solid fa-brain text-xs"></i>
+              <span>AI Threat Forensics & MITRE ATT&CK</span>
+            </span>
+            <button id="btnGenForensics" onclick='requestForensicReport("${dec.decision_id}")' class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-medium flex items-center space-x-1 transition">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Generate Forensic Intel</span>
+            </button>
+          </div>
+          <div id="forensicsReportArea" class="hidden space-y-2 p-3 bg-slate-950 rounded-lg border border-indigo-900/40 text-xs">
+            <!-- Injected via requestForensicReport -->
+          </div>
+        </div>
       `;
       document.getElementById('detailModal').classList.remove('hidden');
     }
+
+    async function requestForensicReport(decisionId) {
+      const btn = document.getElementById('btnGenForensics');
+      const area = document.getElementById('forensicsReportArea');
+      if (!btn || !area) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Analyzing...`;
+      area.classList.remove('hidden');
+      area.innerHTML = `<div class="text-slate-400 text-center py-4"><i class="fa-solid fa-spinner fa-spin text-indigo-400 mr-2"></i>Synthesizing MITRE ATT&CK telemetry & behavioral hypotheses...</div>`;
+
+      try {
+        const res = await fetch(`/api/decisions/${encodeURIComponent(decisionId)}/forensics`, {
+          method: 'POST'
+        });
+        if (!res.ok) throw new Error("Server returned " + res.status);
+        const report = await res.json();
+
+        let badgeColor = "text-rose-400 bg-rose-500/20 border-rose-500/40";
+        if (report.threat_level === "ELEVATED") badgeColor = "text-amber-400 bg-amber-500/20 border-amber-500/40";
+        if (report.threat_level === "LOW") badgeColor = "text-emerald-400 bg-emerald-500/20 border-emerald-500/40";
+
+        area.innerHTML = `
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${report.threat_level} THREAT</span>
+              <span class="text-[10px] text-slate-500 ml-2 font-mono">Model: ${report.model_source}</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">${report.report_id}</span>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Executive Summary:</div>
+            <div class="text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800">${report.executive_summary}</div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Tactical Adversary Hypothesis:</div>
+            <div class="text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800">${report.attack_hypothesis}</div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">MITRE ATT&CK Framework Mapping:</div>
+            <div class="grid grid-cols-1 gap-1.5">
+              ${(report.mitre_attack || []).map(m => `
+                <div class="p-2 bg-slate-900/90 rounded border border-slate-800 flex flex-col">
+                  <div class="flex justify-between items-center mb-0.5">
+                    <span class="font-mono text-cyan-400 font-bold text-[11px]">${m.technique_id} - ${m.technique_name}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold">${m.tactic}</span>
+                  </div>
+                  <div class="text-slate-400 text-[10px]">${m.description}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Recommended SOC Remediation:</div>
+            <ul class="list-disc list-inside space-y-0.5 text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800">
+              ${(report.recommended_soc_actions || []).map(a => `<li>${a}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="text-[10px] text-slate-500 italic pt-1 border-t border-slate-800">
+            ${report.compliance_note}
+          </div>
+        `;
+        btn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Analysis Ready`;
+      } catch (err) {
+        area.innerHTML = `<div class="text-rose-400 p-2">Failed to generate forensic report: ${err.message}</div>`;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-rotate-right mr-1"></i> Retry`;
+      }
+    }
+
 
     function closeModal() {
       document.getElementById('detailModal').classList.add('hidden');
