@@ -117,93 +117,104 @@
 <body class="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 selection:bg-indigo-600 selection:text-white">
 
   <!-- ========================================================================= -->
-  <!-- Navigation Header: Clean, Professional, Thoughtful -->
+  <!-- Navigation Header: Clean, Minimal, Polished -->
   <!-- ========================================================================= -->
-  <header class="border-b border-slate-800/80 bg-[#111827]/90 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex justify-between items-center gap-4">
+  <header class="border-b border-slate-800/80 bg-[#0B0F19]/95 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-4">
       
-      <!-- Logo & Title -->
-      <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-sm">
-          <i class="fa-solid fa-shield-halved text-lg"></i>
+      <!-- New Modern Geometric IdentityGuard Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="switchTab('feed')">
+        <div class="relative w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
+          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <span class="text-base font-bold tracking-tight text-white">IdentityGuard</span>
-            <span class="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-medium">Domain 2 (A-03)</span>
+            <span class="text-sm font-bold tracking-tight text-white font-sans">IdentityGuard</span>
+            <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono font-medium">A-03</span>
           </div>
-          <p class="text-[11px] text-slate-400">Autonomous Session Risk & Takeover Detection</p>
+          <p class="text-[10px] text-slate-400 -mt-0.5">Session Risk Intelligence</p>
         </div>
       </div>
 
-      <!-- Navigation Tabs: Simple & Clean -->
-      <nav class="hidden md:flex items-center space-x-1 text-xs font-medium bg-slate-900/60 p-1 rounded-xl border border-slate-800">
-        <button onclick="switchTab('feed')" id="tab-feed" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition">
-          <i class="fa-solid fa-tower-broadcast mr-1 text-[11px]"></i> Live Radar
+      <!-- Navigation Taskbar: Streamlined & Clean Pill Tabs -->
+      <nav class="hidden md:flex items-center space-x-1 text-xs font-medium bg-slate-900/80 p-1 rounded-xl border border-slate-800/90 shadow-sm">
+        <button onclick="switchTab('feed')" id="tab-feed" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-satellite-dish text-[11px]"></i>
+          <span>Radar</span>
         </button>
-        <button onclick="switchTab('threatmap')" id="tab-threatmap" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-earth-americas mr-1 text-[11px] text-cyan-400"></i> Threat Map
+        <button onclick="switchTab('threatmap')" id="tab-threatmap" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-map-location-dot text-[11px] text-cyan-400"></i>
+          <span>Threat Map</span>
         </button>
-        <button onclick="switchTab('sessions')" id="tab-sessions" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-network-wired mr-1 text-[11px] text-amber-400"></i> Sessions
+        <button onclick="switchTab('sessions')" id="tab-sessions" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-fingerprint text-[11px] text-amber-400"></i>
+          <span>Sessions</span>
         </button>
-        <button onclick="switchTab('profiles')" id="tab-profiles" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-user-shield mr-1 text-[11px] text-indigo-400"></i> User Profiles
+        <button onclick="switchTab('profiles')" id="tab-profiles" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-id-card-clip text-[11px] text-indigo-400"></i>
+          <span>Profiles</span>
         </button>
-        <button onclick="switchTab('scenarios')" id="tab-scenarios" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-gamepad mr-1 text-[11px] text-rose-400"></i> Attack Demos
+        <button onclick="switchTab('scenarios')" id="tab-scenarios" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-bullseye text-[11px] text-rose-400"></i>
+          <span>Scenarios</span>
         </button>
-        <button onclick="switchTab('replay')" id="tab-replay" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-flask-vial mr-1 text-[11px] text-purple-400"></i> Sandbox (R10)
+        <button onclick="switchTab('replay')" id="tab-replay" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-vial-circle-check text-[11px] text-purple-400"></i>
+          <span>Sandbox</span>
         </button>
-        <button onclick="switchTab('audit')" id="tab-audit" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-link mr-1 text-[11px] text-emerald-400"></i> Audit Ledger
+        <button onclick="switchTab('audit')" id="tab-audit" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-cube text-[11px] text-emerald-400"></i>
+          <span>Ledger</span>
         </button>
-        <button onclick="switchTab('reviews')" id="tab-reviews" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
-          <i class="fa-solid fa-clipboard-check mr-1 text-[11px] text-sky-400"></i> Reviews
+        <button onclick="switchTab('reviews')" id="tab-reviews" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-list-check text-[11px] text-sky-400"></i>
+          <span>Reviews</span>
           <span id="badgeOpenReviewsCount" class="hidden ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">0</span>
         </button>
       </nav>
 
       <!-- Action Toolbar -->
-      <div class="flex items-center space-x-2.5 text-xs">
+      <div class="flex items-center space-x-2 text-xs">
         
         <!-- Live SSE Radar Status Indicator -->
         <div id="sseRadarStatus" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live inline-block"></span>
-          <span>RADAR LIVE</span>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live inline-block"></span>
+          <span>LIVE</span>
         </div>
 
         <!-- Quick Event Injector Modal Trigger -->
         <button onclick="openSimulationModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-sm flex items-center space-x-1.5">
-          <i class="fa-solid fa-bolt text-amber-300 text-xs"></i>
-          <span>Simulate Event</span>
+          <i class="fa-solid fa-paper-plane text-xs"></i>
+          <span>Simulate</span>
         </button>
 
         <!-- Target Bank Application Link -->
-        <a href="/bank_app.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center space-x-1.5" title="Launch Protected Target Banking App">
-          <i class="fa-solid fa-building-columns text-emerald-400"></i>
-          <span class="hidden sm:inline">Target Bank</span>
+        <a href="/bank_app.html" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center space-x-1.5" title="Launch Protected Target Banking App">
+          <i class="fa-solid fa-landmark text-emerald-400 text-xs"></i>
+          <span class="hidden sm:inline">Bank App</span>
         </a>
 
         <!-- Sliders Policy Modal -->
-        <button onclick="openPolicyModal()" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="Adjust Policies & Risk Thresholds">
-          <i class="fa-solid fa-sliders text-xs"></i>
+        <button onclick="openPolicyModal()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Adjust Policies & Risk Thresholds">
+          <i class="fa-solid fa-gear text-xs"></i>
         </button>
       </div>
 
     </div>
 
     <!-- Mobile Navigation Sub-bar -->
-    <div class="md:hidden flex overflow-x-auto py-2 px-4 border-t border-slate-800 space-x-2 text-xs bg-[#0B0F19]">
-      <button onclick="switchTab('feed')" class="px-3 py-1 rounded bg-indigo-600 text-white shrink-0">Radar</button>
-      <button onclick="switchTab('threatmap')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Threat Map</button>
-      <button onclick="switchTab('sessions')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Sessions</button>
-      <button onclick="switchTab('profiles')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Profiles</button>
-      <button onclick="switchTab('scenarios')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Scenarios</button>
-      <button onclick="switchTab('replay')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Sandbox</button>
-      <button onclick="switchTab('audit')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Ledger</button>
-      <button onclick="switchTab('reviews')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Reviews</button>
+    <div class="md:hidden flex overflow-x-auto py-2 px-4 border-t border-slate-800 space-x-1.5 text-xs bg-[#0B0F19]">
+      <button onclick="switchTab('feed')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white shrink-0">Radar</button>
+      <button onclick="switchTab('threatmap')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Map</button>
+      <button onclick="switchTab('sessions')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Sessions</button>
+      <button onclick="switchTab('profiles')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Profiles</button>
+      <button onclick="switchTab('scenarios')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Scenarios</button>
+      <button onclick="switchTab('replay')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Sandbox</button>
+      <button onclick="switchTab('audit')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Ledger</button>
+      <button onclick="switchTab('reviews')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Reviews</button>
     </div>
   </header>
 
@@ -860,13 +871,13 @@
         const view = document.getElementById('view-' + t);
         if (view) view.classList.add('hidden');
         const btn = document.getElementById('tab-' + t);
-        if (btn) btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition";
+        if (btn) btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5";
       });
 
       const targetView = document.getElementById('view-' + tab);
       if (targetView) targetView.classList.remove('hidden');
       const targetBtn = document.getElementById('tab-' + tab);
-      if (targetBtn) targetBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white transition";
+      if (targetBtn) targetBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium transition flex items-center space-x-1.5";
 
       if (tab === 'feed') loadDecisionsFeed();
       if (tab === 'threatmap') setTimeout(initLeafletMap, 100);
@@ -876,6 +887,7 @@
       if (tab === 'audit') loadAuditLedger();
       if (tab === 'reviews') loadReviewQueue();
     }
+
 
     // -------------------------------------------------------------
     // Metrics Loading
