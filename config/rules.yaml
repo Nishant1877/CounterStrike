@@ -1,0 +1,180 @@
+version: "v1.0"
+precedence:
+  - revoke
+  - step_up
+  - analyst_review
+  - no_action
+
+thresholds:
+  travel_speed_kmh: 900.0
+  travel_min_distance_km: 50.0
+  sensitive_window_minutes: 30
+  rare_hour_share: 0.02
+  min_events_sufficient: 20
+  min_active_days_sufficient: 5
+  min_active_days_hours_signal: 5
+  new_device_logins_to_trust: 3
+
+sensitive_actions:
+  - change_email
+  - change_password
+  - change_phone
+  - add_payee
+  - request_transfer
+  - export_data
+
+rules:
+  - id: R-01
+    name: "Unfamiliar device on a login alone"
+    description: "Unfamiliar device on a login with no other risk signal triggered."
+    when:
+      all:
+        - is_login: true
+        - signal: unfamiliar_device
+          is: triggered
+        - signal: implausible_location_change
+          is: not_triggered
+        - signal: unusual_hour
+          is: not_triggered
+    requires_evidence: none
+    response: no_action
+
+  - id: R-02
+    name: "Unusual hour alone"
+    description: "Activity during an unusual hour with no other risk signal."
+    when:
+      all:
+        - signal: unusual_hour
+          is: triggered
+        - signal: unfamiliar_device
+          is: not_triggered
+        - signal: implausible_location_change
+          is: not_triggered
+    requires_evidence: none
+    response: no_action
+
+  - id: R-03
+    name: "Implausible location change on a login"
+    description: "Impossible travel speed between consecutive logins."
+    when:
+      all:
+        - is_login: true
+        - signal: implausible_location_change
+          is: triggered
+    requires_evidence: sufficient
+    if_evidence_lower: analyst_review
+    response: step_up
+
+  - id: R-04
+    name: "Unfamiliar device plus unusual hour on login"
+    description: "Login combining unfamiliar device with rare hour."
+    when:
+      all:
+        - is_login: true
+        - signal: unfamiliar_device
+          is: triggered
+        - signal: unusual_hour
+          is: triggered
+    requires_evidence: sufficient
+    if_evidence_lower: analyst_review
+    response: step_up
+
+  - id: R-05
+    name: "Sensitive action shortly after unfamiliar-device login"
+    description: "Sensitive action within window after login from an unfamiliar device, with no second risk signal."
+    when:
+      all:
+        - signal: sensitive_after_unfamiliar_login
+          is: triggered
+        - signal: implausible_location_change
+          is: not_triggered
+        - signal: unusual_hour
+          is: not_triggered
+    requires_evidence: none
+    response: step_up
+
+  - id: R-06
+    name: "Sensitive action after unfamiliar-device login, plus a second risk signal"
+    description: "Sensitive action post unfamiliar login combined with speed violation or unusual hour."
+    when:
+      all:
+        - signal: sensitive_after_unfamiliar_login
+          is: triggered
+        - any:
+            - signal: implausible_location_change
+              is: triggered
+            - signal: unusual_hour
+              is: triggered
+    requires_evidence: sufficient
+    if_evidence_lower: analyst_review
+    response: revoke
+    also_open_review: true
+
+  - id: R-07
+    name: "Unfamiliar device plus implausible location change on a login"
+    description: "Login from unfamiliar device with impossible travel speed."
+    when:
+      all:
+        - is_login: true
+        - signal: unfamiliar_device
+          is: triggered
+        - signal: implausible_location_change
+          is: triggered
+    requires_evidence: sufficient
+    if_evidence_lower: analyst_review
+    response: revoke
+    also_open_review: true
+
+  - id: R-08
+    name: "Sensitive-action chain in session whose login device was unfamiliar"
+    description: "Multiple sensitive actions chained together in an unfamiliar login session."
+    when:
+      all:
+        - signal: sensitive_action_chain
+          is: triggered
+        - signal: unfamiliar_device
+          is: triggered
+    requires_evidence: sufficient
+    if_evidence_lower: analyst_review
+    response: revoke
+    also_open_review: true
+
+  - id: R-09
+    name: "AI Advisory flags action sequence supported by unfamiliar device and sensitive action"
+    description: "AI action sequence anomaly corroborated by deterministic risk signals."
+    when:
+      all:
+        - advisory: sequence_anomalous
+          is: true
+        - signal: unfamiliar_device
+          is: triggered
+        - signal: sensitive_after_unfamiliar_login
+          is: triggered
+    requires_evidence: none
+    response: analyst_review
+
+  - id: R-10
+    name: "Step-up challenge failed or expired"
+    description: "User failed or timed out the step-up verification challenge."
+    when:
+      all:
+        - challenge_result: failed_or_expired
+          is: true
+    requires_evidence: none
+    response: revoke
+
+  - id: R-11
+    name: "Only caveats present and no signal triggered"
+    description: "Data quality caveats present but no risk signals triggered."
+    when:
+      all:
+        - signal: unfamiliar_device
+          is: not_triggered
+        - signal: implausible_location_change
+          is: not_triggered
+        - signal: unusual_hour
+          is: not_triggered
+        - signal: sensitive_after_unfamiliar_login
+          is: not_triggered
+    requires_evidence: none
+    response: no_action
