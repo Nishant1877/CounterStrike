@@ -16,10 +16,14 @@ from api.routes_compat import router as compat_router, compat_engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize database tables
+    # Startup: Initialize database tables and seed baseline personas
     default_db.init_db()
+    from data.seed_demo import seed_demo_database
+    from api.routes_ingest import _pipeline
+    seed_demo_database(target_pipeline=_pipeline)
     yield
     # Shutdown
+
 
 
 app = FastAPI(

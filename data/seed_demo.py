@@ -18,14 +18,17 @@ from data.fixtures import (
 )
 
 
-def seed_demo_database():
+def seed_demo_database(target_pipeline: SecurityPipeline = None):
     """Seeds baseline profiles, attack scenarios, and initial cases."""
     print("[IdentityGuard] Seeding demo database...")
     default_db.init_db()
 
-    loc_db = LocationDatabase("config/locations.csv")
-    rule_engine = RuleEngine("config/rules.yaml")
-    pipeline = SecurityPipeline(location_db=loc_db, rule_engine=rule_engine)
+    if target_pipeline is None:
+        from api.routes_ingest import get_pipeline
+        pipeline = get_pipeline()
+    else:
+        pipeline = target_pipeline
+
 
     now = datetime.now(timezone.utc)
 

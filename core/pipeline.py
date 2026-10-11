@@ -111,22 +111,25 @@ class SecurityPipeline:
             raise ValueError(f"Event rejected and quarantined: {e}") from e
 
         # Store raw event in append-only table (Section 6)
-        db_event = EventModel(
-            event_id=norm_event.event_id,
-            ingest_seq=norm_event.ingest_seq,
-            received_at=norm_event.received_at,
-            event_ts=norm_event.event_ts,
-            user=norm_event.user,
-            device_id=norm_event.device_id,
-            location_label_raw=norm_event.location_label_raw,
-            location_label_norm=norm_event.location_label_norm,
-            action=norm_event.action,
-            session_id=norm_event.session_id,
-            warnings_json=json.dumps(norm_event.warnings),
-            ingest_status=norm_event.ingest_status.value,
-            raw_payload_json=json.dumps(norm_event.raw_payload)
-        )
-        db.add(db_event)
+        existing_ev = db.query(EventModel).filter(EventModel.event_id == norm_event.event_id).first()
+        if not existing_ev:
+            db_event = EventModel(
+                event_id=norm_event.event_id,
+                ingest_seq=norm_event.ingest_seq,
+                received_at=norm_event.received_at,
+                event_ts=norm_event.event_ts,
+                user=norm_event.user,
+                device_id=norm_event.device_id,
+                location_label_raw=norm_event.location_label_raw,
+                location_label_norm=norm_event.location_label_norm,
+                action=norm_event.action,
+                session_id=norm_event.session_id,
+                warnings_json=json.dumps(norm_event.warnings),
+                ingest_status=norm_event.ingest_status.value,
+                raw_payload_json=json.dumps(norm_event.raw_payload)
+            )
+            db.add(db_event)
+
 
         # Step 2: Session Gate (R11 & Section 12.4)
         # Look up session state in transactional store
