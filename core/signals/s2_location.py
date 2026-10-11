@@ -102,7 +102,10 @@ class ImplausibleLocationChangeDetector(BaseSignalDetector):
             prev_rec.latitude, prev_rec.longitude, curr_rec.latitude, curr_rec.longitude
         )
 
-        elapsed_seconds = (event.event_ts - prev_ts).total_seconds()
+        from datetime import timezone
+        prev_utc = prev_ts.replace(tzinfo=timezone.utc) if prev_ts.tzinfo is None else prev_ts.astimezone(timezone.utc)
+        curr_utc = event.event_ts.replace(tzinfo=timezone.utc) if event.event_ts.tzinfo is None else event.event_ts.astimezone(timezone.utc)
+        elapsed_seconds = (curr_utc - prev_utc).total_seconds()
 
         # Handle zero or negative elapsed time (e.g. tie or out-of-order)
         if elapsed_seconds <= 0:

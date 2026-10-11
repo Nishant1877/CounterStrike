@@ -47,8 +47,11 @@ class OrderingHandler:
             self.user_latest_event_ts[user] = event.event_ts
             return OrderingClassification.ON_TIME, None
 
-        # Compare event_ts with last_ts
-        delta = (event.event_ts - last_ts).total_seconds()
+        # Compare event_ts with last_ts (both UTC)
+        from datetime import timezone
+        last_utc = last_ts.replace(tzinfo=timezone.utc) if last_ts.tzinfo is None else last_ts.astimezone(timezone.utc)
+        curr_utc = event.event_ts.replace(tzinfo=timezone.utc) if event.event_ts.tzinfo is None else event.event_ts.astimezone(timezone.utc)
+        delta = (curr_utc - last_utc).total_seconds()
 
         if delta < 0:
             # Event happened earlier than the latest processed event

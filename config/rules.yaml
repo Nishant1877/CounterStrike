@@ -86,10 +86,12 @@ rules:
       all:
         - signal: sensitive_after_unfamiliar_login
           is: triggered
-        - signal: implausible_location_change
-          is: not_triggered
-        - signal: unusual_hour
-          is: not_triggered
+        - not:
+            signal: implausible_location_change
+            is: triggered
+        - not:
+            signal: unusual_hour
+            is: triggered
     requires_evidence: none
     response: step_up
 

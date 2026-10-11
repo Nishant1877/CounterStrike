@@ -6,7 +6,7 @@ Strictly adheres to requirement R1 (5-field input contract), R3, R4, R7, R8, R9,
 from __future__ import annotations
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, ConfigDict
 
 
@@ -141,4 +141,4 @@ class Decision(BaseModel):
     evidence_statement: str
     explanation_text: str
     supersedes_decision_id: Optional[str] = None
-    timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

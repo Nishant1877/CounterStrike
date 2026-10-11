@@ -92,8 +92,19 @@ class SensitiveAfterUnfamiliarLoginDetector(BaseSignalDetector):
                 inputs=[event.event_id]
             )
 
-        # Calculate time between login and sensitive action
-        elapsed_seconds = (event.event_ts - login_ts).total_seconds()
+        # Ensure both timestamps are timezone-aware UTC before subtraction
+        from datetime import timezone
+        if login_ts.tzinfo is None:
+            login_ts_utc = login_ts.replace(tzinfo=timezone.utc)
+        else:
+            login_ts_utc = login_ts.astimezone(timezone.utc)
+
+        if event.event_ts.tzinfo is None:
+            event_ts_utc = event.event_ts.replace(tzinfo=timezone.utc)
+        else:
+            event_ts_utc = event.event_ts.astimezone(timezone.utc)
+
+        elapsed_seconds = (event_ts_utc - login_ts_utc).total_seconds()
         if elapsed_seconds < 0:
             return SignalResult(
                 signal_id=self.signal_id,
@@ -115,6 +126,11 @@ class SensitiveAfterUnfamiliarLoginDetector(BaseSignalDetector):
             "login_device_unfamiliar": True
         }
 
+        inputs_list = [event.event_id]
+        login_evt_id = session_info.get("login_event_id")
+        if login_evt_id:
+            inputs_list.append(str(login_evt_id))
+
         if 0 <= elapsed_minutes <= window_minutes:
             return SignalResult(
                 signal_id=self.signal_id,
@@ -127,7 +143,7 @@ class SensitiveAfterUnfamiliarLoginDetector(BaseSignalDetector):
                     f"{event.device_id}, which this user had never used before."
                 ),
                 evidence=evidence,
-                inputs=[event.event_id, session_info.get("login_event_id", "")]
+                inputs=inputs_list
             )
 
         return SignalResult(
@@ -140,5 +156,5 @@ class SensitiveAfterUnfamiliarLoginDetector(BaseSignalDetector):
                 f"Action occurred {elapsed_minutes} minutes after login (exceeds the {window_minutes}-minute risk window)."
             ),
             evidence=evidence,
-            inputs=[event.event_id]
+            inputs=inputs_list
         )
