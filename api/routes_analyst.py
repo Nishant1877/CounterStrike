@@ -4,10 +4,12 @@ Powers the SOC dashboard: investigations, reviews, profile inspector, audit veri
 """
 
 import json
+import asyncio
 from datetime import datetime, timezone
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
 from store.db import default_db
@@ -21,8 +23,74 @@ from store.models import (
 from store.audit import AuditLedger
 from api.routes_ingest import get_pipeline
 from core.pipeline import SecurityPipeline
+from core.streaming import broadcaster
 
 router = APIRouter(prefix="/api", tags=["Analyst"])
+
+
+@router.get("/stream/events")
+async def stream_events():
+    """
+    GET /api/stream/events (Server-Sent Events)
+    Delivers zero-latency live streams of decisions, threat detections, and metrics.
+    No extra dependencies required; uses HTTP text/event-stream.
+    """
+    queue = await broadcaster.subscribe()
+
+    async def event_generator():
+        try:
+            # Yield initial connection heartbeat
+            initial_ping = json.dumps({"type": "connected", "timestamp": datetime.now(timezone.utc).isoformat()})
+            yield f"event: connect\ndata: {initial_ping}\n\n"
+
+            while True:
+                try:
+                    # Wait up to 15 seconds for next event, else send keep-alive comment
+                    message = await asyncio.wait_for(queue.get(), timeout=15.0)
+                    data_str = json.dumps(message)
+                    event_type = message.get("type", "message")
+                    yield f"event: {event_type}\ndata: {data_str}\n\n"
+                except asyncio.TimeoutError:
+                    # Heartbeat comment to keep connection alive through proxies
+                    yield ": ping\n\n"
+        except asyncio.CancelledError:
+            pass
+        finally:
+            await broadcaster.unsubscribe(queue)
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
+
+
+@router.websocket("/ws/events")
+async def websocket_events(websocket: WebSocket):
+    """
+    WebSocket endpoint for bi-directional live feeds.
+    Clients receive real-time decisions, threat signals, and radar notifications.
+    """
+    await websocket.accept()
+    queue = await broadcaster.subscribe()
+    try:
+        await websocket.send_json({"type": "connected", "timestamp": datetime.now(timezone.utc).isoformat()})
+        while True:
+            # Send events as they arrive or ping every 15s
+            try:
+                msg = await asyncio.wait_for(queue.get(), timeout=15.0)
+                await websocket.send_json(msg)
+            except asyncio.TimeoutError:
+                await websocket.send_json({"type": "ping"})
+    except WebSocketDisconnect:
+        pass
+    finally:
+        await broadcaster.unsubscribe(queue)
+
 
 
 def get_db():

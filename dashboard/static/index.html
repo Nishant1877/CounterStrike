@@ -49,6 +49,13 @@
 
       <!-- Target App Link & Demo Launcher -->
       <div class="flex items-center space-x-3 text-xs">
+        <div id="sseRadarStatus" class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] text-emerald-400">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="font-mono font-medium">LIVE RADAR</span>
+        </div>
         <a href="/react_app.html" target="_blank" class="px-3 py-1.5 rounded-md bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-600/30 transition flex items-center space-x-1">
           <i class="fa-brands fa-react text-cyan-400"></i>
           <span>React Threat Map UI</span>
@@ -628,10 +635,139 @@
       }
     }
 
+    // -------------------------------------------------------------
+    // Stage B: Real-Time SSE Stream & Live Radar Connection
+    // -------------------------------------------------------------
+    let eventSource = null;
+
+    function renderDecisionRow(d, isNew = false) {
+      let badgeClass = "badge-noaction";
+      if (d.response === 'revoke') badgeClass = "badge-revoke";
+      else if (d.response === 'step_up') badgeClass = "badge-stepup";
+      else if (d.response === 'analyst_review') badgeClass = "badge-review";
+      else if (d.response === 'refused_session_revoked') badgeClass = "badge-refused";
+
+      const timeStr = d.created_at ? d.created_at.substring(11, 19) : new Date().toLocaleTimeString();
+      const highlightClass = isNew ? "bg-indigo-950/60 border-l-4 border-indigo-500 animate-pulse transition duration-1000" : "hover:bg-slate-800/40 transition";
+
+      return `
+        <tr class="${highlightClass}" id="row-${d.decision_id}">
+          <td class="py-3 px-4">
+            <div class="text-white font-medium">${timeStr}</div>
+            <div class="text-[10px] text-slate-500">${d.event_id || 'evt_live'}</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="text-indigo-300 font-semibold">${d.user}</div>
+            <div class="text-[10px] text-slate-500 truncate max-w-[120px]">${d.session_id}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${(d.response || 'NO_ACTION').toUpperCase()}</span>
+            <div class="text-[10px] text-slate-400 mt-1">${d.deciding_rule || 'N/A'}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="text-[11px] text-slate-300 font-bold">${d.evidence_level || 'N/A'}</span>
+          </td>
+          <td class="py-3 px-4 font-sans text-xs text-slate-300 max-w-md">
+            ${d.explanation || 'No summary'}
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button onclick='showDetail(${JSON.stringify(d).replace(/'/g, "&#39;")})' class="text-indigo-400 hover:text-indigo-300 text-xs">
+              Inspect &rarr;
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function connectSSE() {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      eventSource = new EventSource('/api/stream/events');
+
+      const radarBadge = document.getElementById('sseRadarStatus');
+
+      eventSource.addEventListener('connect', (e) => {
+        if (radarBadge) {
+          radarBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 text-[11px] text-emerald-400 shadow-sm";
+          radarBadge.innerHTML = `
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="font-mono font-medium">LIVE RADAR</span>
+          `;
+        }
+      });
+
+      eventSource.addEventListener('decision', (e) => {
+        try {
+          const envelope = JSON.parse(e.data);
+          const d = envelope.data;
+          const tbody = document.getElementById('decisionsTableBody');
+
+          // Check if filters match
+          const respFilter = document.getElementById('filterResponse').value;
+          const userFilter = document.getElementById('filterUser').value.trim();
+          if (respFilter && d.response !== respFilter) return;
+          if (userFilter && d.user.toLowerCase() !== userFilter.toLowerCase()) return;
+
+          // Prepend new row to table
+          const tempDiv = document.createElement('tbody');
+          tempDiv.innerHTML = renderDecisionRow(d, true);
+          const newRow = tempDiv.firstElementChild;
+
+          if (tbody) {
+            // Remove empty placeholder if any
+            if (tbody.children.length === 1 && tbody.children[0].innerText.includes("No decisions")) {
+              tbody.innerHTML = '';
+            }
+            tbody.insertBefore(newRow, tbody.firstChild);
+
+            // Keep max 60 rows
+            while (tbody.children.length > 60) {
+              tbody.removeChild(tbody.lastChild);
+            }
+
+            // Remove pulsating glow after 2 seconds
+            setTimeout(() => {
+              if (newRow) {
+                newRow.className = "hover:bg-slate-800/40 transition";
+              }
+            }, 2500);
+          }
+
+          // Live increment metrics
+          const totEl = document.getElementById('metricTotalEvents');
+          if (totEl && totEl.innerText !== '-') {
+            totEl.innerText = parseInt(totEl.innerText || 0) + 1;
+          }
+          if (d.response === 'revoke' || d.response === 'refused_session_revoked') {
+            const revEl = document.getElementById('metricRevocations');
+            if (revEl && revEl.innerText !== '-') revEl.innerText = parseInt(revEl.innerText || 0) + 1;
+          } else if (d.response === 'step_up') {
+            const stpEl = document.getElementById('metricStepUps');
+            if (stpEl && stpEl.innerText !== '-') stpEl.innerText = parseInt(stpEl.innerText || 0) + 1;
+          }
+        } catch (err) {
+          console.error("Error processing SSE decision payload", err);
+        }
+      });
+
+      eventSource.onerror = (err) => {
+        if (radarBadge) {
+          radarBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded bg-amber-950/80 border border-amber-500/40 text-[11px] text-amber-400";
+          radarBadge.innerHTML = `<span class="inline-block h-2 w-2 rounded-full bg-amber-400"></span><span class="font-mono font-medium">RECONNECTING</span>`;
+        }
+      };
+    }
+
     // Auto initialize
     loadMetrics();
     loadDecisionsFeed();
-    setInterval(loadMetrics, 5000);
+    connectSSE();
+    setInterval(loadMetrics, 10000);
   </script>
 
 </body>

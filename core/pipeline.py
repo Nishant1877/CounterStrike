@@ -23,6 +23,8 @@ from core.contracts import (
     ResponseAction,
     SessionState
 )
+from core.streaming import broadcaster
+
 from core.normalize import LocationDatabase, EventNormalizer
 from core.ordering import OrderingHandler, OrderingClassification
 from core.profile import ProfileManager, UserProfile
@@ -384,4 +386,29 @@ class SecurityPipeline:
                 is_resolvable_location=(loc_rec is not None)
             )
 
+        # Broadcast real-time stream event for SOC Radar & Live Feed
+        if mode == "live":
+            broadcaster.publish_nowait(
+                event_type="decision",
+                data={
+                    "decision_id": decision.decision_id,
+                    "event_id": decision.event_id,
+                    "session_id": decision.session_id,
+                    "user": decision.user,
+                    "action": norm_event.action,
+                    "device_id": norm_event.device_id,
+                    "location_label": norm_event.location_label_norm,
+                    "location_raw": norm_event.location_label_raw,
+                    "response": decision.response.value,
+                    "deciding_rule": decision.deciding_rule,
+                    "rules_fired": decision.rules_fired,
+                    "evidence_level": decision.evidence_level.value,
+                    "evidence_statement": decision.evidence_statement,
+                    "explanation": decision.explanation_text,
+                    "signals": [s.model_dump() for s in decision.signals],
+                    "created_at": datetime.now(timezone.utc).isoformat()
+                }
+            )
+
         return decision, False
+

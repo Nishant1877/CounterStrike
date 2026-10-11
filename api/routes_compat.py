@@ -207,12 +207,21 @@ def update_policy(new_policy: PolicyConfig, pipeline: SecurityPipeline = Depends
 
 
 @router.post("/reset")
-def reset_engine(pipeline: SecurityPipeline = Depends(get_pipeline)):
-    """Reset engine back to initial baseline state."""
+def reset_engine(db: Session = Depends(get_db), pipeline: SecurityPipeline = Depends(get_pipeline)):
+    """Reset engine back to initial baseline state and reset ephemeral test records."""
     init_compat_baseline()
     compat_engine.policy = PolicyConfig()
     pipeline.update_thresholds({
         "travel_speed_kmh": 900.0,
         "sensitive_window_minutes": 30
     })
+    # Reset test events for clean state
+    try:
+        db.query(DecisionModel).filter(DecisionModel.user.like("%stream_%")).delete(synchronize_session=False)
+        db.query(EventModel).filter(EventModel.user.like("%stream_%")).delete(synchronize_session=False)
+        db.commit()
+    except Exception:
+        db.rollback()
+
     return {"status": "reset_successful", "revoked_sessions": list(compat_engine.revoked_sessions)}
+
