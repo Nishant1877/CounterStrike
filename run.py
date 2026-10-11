@@ -27,12 +27,13 @@ if __name__ == "__main__":
     if is_port_in_use(default_port) and "PORT" not in os.environ:
         default_port = 8080
 
-    print(f"\n[+] Launching server on http://127.0.0.1:{default_port}")
-    print(f"    - Analyst SOC Command Center:   http://127.0.0.1:{default_port}/")
-    print(f"    - React 18 World Threat Map UI: http://127.0.0.1:{default_port}/react_app.html")
-    print(f"    - Protected Target Banking App: http://127.0.0.1:{default_port}/bank_app.html")
-    print(f"    - Interactive API Docs:         http://127.0.0.1:{default_port}/docs")
+    host = "0.0.0.0" if "PORT" in os.environ else "127.0.0.1"
+    print(f"\n[+] Launching server on http://{host}:{default_port}")
+    print(f"    - Analyst SOC Command Center:   http://{host}:{default_port}/")
+    print(f"    - React 18 World Threat Map UI: http://{host}:{default_port}/react_app.html")
+    print(f"    - Protected Target Banking App: http://{host}:{default_port}/bank_app.html")
+    print(f"    - Interactive API Docs:         http://{host}:{default_port}/docs")
     print("==================================================================\n")
     
-    uvicorn.run("api.main:app", host="127.0.0.1", port=default_port, reload=False)
+    uvicorn.run("api.main:app", host=host, port=default_port, reload=False)
 
