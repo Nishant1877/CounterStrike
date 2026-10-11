@@ -1,0 +1,1967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IdentityGuard v3.0 | Autonomous Threat & Session Command Center</title>
+  
+  <!-- Modern CDN Stack -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81'
+            },
+            cyber: {
+              dark: '#030712',
+              card: '#0B1120',
+              border: '#1E293B',
+              accent: '#38BDF8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'Fira Code', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #030712;
+      color: #F8FAFC;
+      overflow-x: hidden;
+    }
+    
+    /* Modern Glassmorphic Elevation */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+    }
+    
+    .glass-card-hover {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 20px 35px -10px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #030712; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    /* Custom Leaflet Dark Override */
+    .leaflet-container {
+      background: #0B1120 !important;
+      font-family: 'Inter', sans-serif !important;
+    }
+    .leaflet-tile {
+      filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(90%);
+    }
+
+    /* Badges */
+    .badge-revoke { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.4); }
+    .badge-stepup { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-review { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .badge-noaction { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-refused { background: rgba(225, 29, 72, 0.25); color: #fda4af; border: 1px solid rgba(225, 29, 72, 0.6); }
+
+    /* Cyber Glow & Pulse Animations */
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+      50% { box-shadow: 0 0 25px rgba(99, 102, 241, 0.5); }
+    }
+    .live-active-glow { animation: pulseGlow 2.5s infinite; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-cyber-dark text-slate-100 selection:bg-indigo-500 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- Top Navigation Header -->
+  <!-- ========================================================================= -->
+  <header class="border-b border-slate-800/80 bg-cyber-card/90 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-[1720px] mx-auto px-4 lg:px-8 py-3.5 flex justify-between items-center gap-4">
+      
+      <!-- Brand & Status -->
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+          <i class="fa-solid fa-shield-halved text-xl"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">IdentityGuard</span>
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 font-mono font-semibold">Enterprise v3.0</span>
+            <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono font-semibold hidden sm:inline-block">Domain 2 (A-03)</span>
+          </div>
+          <p class="text-[11px] text-slate-400">Zero-Trust Autonomous Session Risk & Takeover Prevention Engine</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden lg:flex items-center p-1 rounded-xl bg-slate-900/90 border border-slate-800/90 space-x-1 text-xs font-medium">
+        <button onclick="switchTab('feed')" id="tab-feed" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-tower-broadcast text-xs"></i>
+          <span>Live Radar</span>
+        </button>
+        <button onclick="switchTab('worldmap')" id="tab-worldmap" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-earth-americas text-xs text-cyan-400"></i>
+          <span>Threat Map</span>
+        </button>
+        <button onclick="switchTab('sessions')" id="tab-sessions" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-network-wired text-xs text-amber-400"></i>
+          <span>Active Sessions</span>
+        </button>
+        <button onclick="switchTab('profile')" id="tab-profile" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-user-shield text-xs text-indigo-400"></i>
+          <span>User Profiles</span>
+        </button>
+        <button onclick="switchTab('scenarios')" id="tab-scenarios" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-gamepad text-xs text-rose-400"></i>
+          <span>Attack Scenarios</span>
+        </button>
+        <button onclick="switchTab('replay')" id="tab-replay" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-flask-vial text-xs text-purple-400"></i>
+          <span>R10 Sandbox</span>
+        </button>
+        <button onclick="switchTab('audit')" id="tab-audit" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-link text-xs text-emerald-400"></i>
+          <span>Audit Ledger</span>
+        </button>
+        <button onclick="switchTab('reviews')" id="tab-reviews" class="px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5">
+          <i class="fa-solid fa-clipboard-check text-xs text-sky-400"></i>
+          <span>SOC Review Queue</span>
+          <span id="badgeOpenReviewsCount" class="hidden px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">0</span>
+        </button>
+      </nav>
+
+      <!-- Right Action Toolbar -->
+      <div class="flex items-center space-x-3 text-xs">
+        
+        <!-- Live SSE Radar Pulsing Indicator -->
+        <div id="sseRadarStatus" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs">
+          <span class="relative flex h-2.5 w-2.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span class="font-mono font-semibold tracking-wider">RADAR LIVE</span>
+        </div>
+
+        <!-- Quick Simulator Trigger Modal Button -->
+        <button onclick="openSimulationModal()" class="px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold shadow-md shadow-indigo-600/30 flex items-center space-x-1.5 transition">
+          <i class="fa-solid fa-bolt text-amber-300"></i>
+          <span class="hidden sm:inline">Inject Event</span>
+        </button>
+
+        <!-- Gateway / Bank App Direct Links -->
+        <a href="/bank_app.html" target="_blank" class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/20 transition flex items-center space-x-1.5" title="Launch Protected Target Banking Application">
+          <i class="fa-solid fa-building-columns"></i>
+          <span class="hidden md:inline">Target Bank</span>
+        </a>
+
+        <!-- Settings Policy Button -->
+        <button onclick="openPolicyModal()" class="p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition" title="Configure Risk Thresholds & Velocity Policy">
+          <i class="fa-solid fa-sliders text-sm"></i>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Nav Bar (below lg) -->
+    <div class="lg:hidden flex overflow-x-auto py-2 px-4 border-t border-slate-800 space-x-2 text-xs">
+      <button onclick="switchTab('feed')" class="px-3 py-1 rounded bg-indigo-600 text-white shrink-0">Radar</button>
+      <button onclick="switchTab('worldmap')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Map</button>
+      <button onclick="switchTab('sessions')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Sessions</button>
+      <button onclick="switchTab('profile')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Profiles</button>
+      <button onclick="switchTab('scenarios')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Scenarios</button>
+      <button onclick="switchTab('replay')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Sandbox</button>
+      <button onclick="switchTab('audit')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Ledger</button>
+      <button onclick="switchTab('reviews')" class="px-3 py-1 rounded bg-slate-800 text-slate-300 shrink-0">Reviews</button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- Live Metric Velocity Ribbon -->
+  <!-- ========================================================================= -->
+  <section class="border-b border-slate-800/60 bg-slate-900/40 px-4 lg:px-8 py-3">
+    <div class="max-w-[1720px] mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
+      
+      <div class="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+          <i class="fa-solid fa-list-check"></i>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Ingested</div>
+          <div id="metricTotalEvents" class="text-sm font-bold text-white font-mono">-</div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+        <div class="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+          <i class="fa-solid fa-ban"></i>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Revocations (R11)</div>
+          <div id="metricRevocations" class="text-sm font-bold text-rose-400 font-mono">-</div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+        <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+          <i class="fa-solid fa-key"></i>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Step-Up 2FA</div>
+          <div id="metricStepUps" class="text-sm font-bold text-amber-400 font-mono">-</div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+        <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+          <i class="fa-solid fa-user-clock"></i>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Active Sessions</div>
+          <div id="metricActiveSessions" class="text-sm font-bold text-purple-400 font-mono">-</div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+        <div class="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Late Events (R6)</div>
+          <div id="metricLate" class="text-sm font-bold text-sky-400 font-mono">-</div>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80">
+        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+          <i class="fa-solid fa-link"></i>
+        </div>
+        <div>
+          <div class="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Audit SHA-256</div>
+          <div class="text-sm font-bold text-emerald-400 flex items-center space-x-1 font-mono">
+            <span>Verified</span>
+            <i class="fa-solid fa-check text-[10px]"></i>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- Main View Area (Tab Container) -->
+  <!-- ========================================================================= -->
+  <main class="max-w-[1720px] mx-auto px-4 lg:px-8 py-6 flex-1 w-full space-y-6">
+
+    <!-- ===================================================================== -->
+    <!-- TAB 1: LIVE DECISIONS RADAR FEED -->
+    <!-- ===================================================================== -->
+    <div id="view-feed" class="space-y-6">
+      
+      <!-- Filter & Fast Action Toolbar -->
+      <div class="glass-panel p-4 rounded-2xl flex flex-wrap justify-between items-center gap-4">
+        <div class="flex flex-wrap items-center gap-3 text-xs">
+          <span class="text-slate-400 font-medium">Filter Decision:</span>
+          <select id="filterResponse" onchange="loadDecisionsFeed()" class="bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 focus:outline-none focus:border-indigo-500">
+            <option value="">All Decisions</option>
+            <option value="revoke">Terminal Revoke</option>
+            <option value="step_up">Step-Up Verification</option>
+            <option value="analyst_review">Analyst Review Case</option>
+            <option value="refused_session_revoked">Refused (R11 Terminated)</option>
+            <option value="no_action">No Action (Permitted)</option>
+          </select>
+
+          <span class="text-slate-400 font-medium ml-2">User Persona:</span>
+          <input type="text" id="filterUser" placeholder="e.g. asha or david" onkeyup="if(event.key==='Enter')loadDecisionsFeed()" class="bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200 w-36 focus:outline-none focus:border-indigo-500">
+          
+          <button onclick="loadDecisionsFeed()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg font-medium transition shadow">
+            <i class="fa-solid fa-filter mr-1"></i> Apply Filter
+          </button>
+          
+          <button onclick="resetFeedFilters()" class="text-slate-400 hover:text-slate-200 px-2 py-1 transition text-xs">
+            Clear
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs">
+          <span class="text-slate-400 hidden sm:inline">Stream Mode: <b class="text-emerald-400 font-mono">SSE Real-Time Sync</b></span>
+          <button onclick="triggerQuickSeed()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+            <i class="fa-solid fa-rotate mr-1"></i> Re-Seed Personas
+          </button>
+        </div>
+      </div>
+
+      <!-- Decision Stream Live Table -->
+      <div class="glass-panel rounded-2xl overflow-hidden shadow-2xl border border-slate-800/80">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/95 text-slate-400 uppercase tracking-wider text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="py-3.5 px-4 font-semibold">Timestamp / Event ID</th>
+                <th class="py-3.5 px-4 font-semibold">User Identity & Session</th>
+                <th class="py-3.5 px-4 font-semibold">Deterministic Decision</th>
+                <th class="py-3.5 px-4 font-semibold">Evidence Level</th>
+                <th class="py-3.5 px-4 font-semibold">Multi-Tier Plain-English Explanation</th>
+                <th class="py-3.5 px-4 font-semibold text-right">SOC Inspection</th>
+              </tr>
+            </thead>
+            <tbody id="decisionsTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
+              <tr>
+                <td colspan="6" class="py-12 text-center text-slate-500">
+                  <i class="fa-solid fa-circle-notch fa-spin text-indigo-500 text-xl mr-2"></i> Connecting to decision stream...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 2: GEOGRAPHIC THREAT VELOCITY MAP -->
+    <!-- ===================================================================== -->
+    <div id="view-worldmap" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-2xl">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-earth-americas text-cyan-400"></i>
+              <span>Global Threat Intelligence & Velocity Corridors</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Visualizes real-time session telemetry across global edge points. Arcs represent computed travel corridors exceeding threshold velocities (S2 Implausible Travel).
+            </p>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="px-2.5 py-1 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40">🔴 Attack Vector</span>
+            <span class="px-2.5 py-1 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">🟢 Trusted Baseline</span>
+          </div>
+        </div>
+
+        <!-- Leaflet Map Container -->
+        <div id="leafletThreatMap" class="w-full h-[520px] rounded-xl border border-slate-800 relative z-0"></div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 3: ACTIVE & REVOKED SESSIONS INVENTORY -->
+    <!-- ===================================================================== -->
+    <div id="view-sessions" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-2xl">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-network-wired text-amber-400"></i>
+              <span>Live Session Inventory & SOC Kill-Switch Hub</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Real-time directory of active, step-up challenged, and revoked sessions across the entire ecosystem. Revoking a session enforces terminal rejection across all downstream APIs (R11).
+            </p>
+          </div>
+          <div class="flex items-center space-x-3 text-xs">
+            <button onclick="loadSessionsInventory()" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+              <i class="fa-solid fa-rotate-right mr-1"></i> Refresh Sessions
+            </button>
+          </div>
+        </div>
+
+        <!-- Sessions Grid / Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Session Identifier</th>
+                <th class="py-3 px-4">User</th>
+                <th class="py-3 px-4">Device</th>
+                <th class="py-3 px-4">Last Location</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Last Activity</th>
+                <th class="py-3 px-4 text-right">Emergency Action</th>
+              </tr>
+            </thead>
+            <tbody id="sessionsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-500">Loading active sessions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 4: USER PROFILES & DIURNAL DYNAMICS -->
+    <!-- ===================================================================== -->
+    <div id="view-profile" class="hidden space-y-6">
+      
+      <!-- Profile Persona Selectors -->
+      <div class="glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-400 font-medium">Select Persona:</span>
+          <button onclick="loadProfile('asha')" id="btnPersona-asha" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold transition">Asha (9-5 Office)</button>
+          <button onclick="loadProfile('david')" id="btnPersona-david" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">David (Frequent Traveler)</button>
+          <button onclick="loadProfile('elena')" id="btnPersona-elena" class="px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition">Elena (Cold-Start Sparse)</button>
+        </div>
+        <div class="text-xs text-slate-400 font-mono" id="profileLastUpdated">
+          Synchronized to Primary Pipeline
+        </div>
+      </div>
+
+      <!-- Persona Stat Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        
+        <div class="glass-panel p-5 rounded-2xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">User Identity</div>
+          <div id="profUserId" class="text-xl font-bold text-white mt-1.5 font-mono">asha</div>
+          <div id="profEvidence" class="text-xs font-semibold text-indigo-400 mt-1">Evidence: ESTABLISHED</div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Baseline Volume</div>
+          <div id="profEventsCount" class="text-xl font-bold text-white mt-1.5 font-mono">31 events</div>
+          <div id="profDaysCount" class="text-xs text-slate-400 mt-1">6 active baseline days</div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Home Base & TZ</div>
+          <div id="profHomeLoc" class="text-xl font-bold text-white mt-1.5">Pune, India</div>
+          <div id="profHomeTz" class="text-xs text-slate-400 mt-1">Asia/Kolkata (IST)</div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Trusted Devices</div>
+          <div id="profDevicesCount" class="text-xl font-bold text-white mt-1.5 font-mono">2 devices</div>
+          <div class="text-xs text-emerald-400 mt-1 flex items-center space-x-1">
+            <i class="fa-solid fa-shield-check text-[10px]"></i>
+            <span>Known Device Registry (S1)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Charts & Known Devices Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- 24-Hour Diurnal Chart -->
+        <div class="glass-panel p-6 rounded-2xl">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="text-sm font-bold text-white">24-Hour Diurnal Smoothed Distribution</h3>
+              <p class="text-xs text-slate-400">Gaussian Kernel Smoothed Activity Curve (S3 Unusual Hour)</p>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded bg-indigo-500/20 text-indigo-300 font-mono">P(h) Probability</span>
+          </div>
+          <div class="h-64">
+            <canvas id="diurnalChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Known Device Trust Registry -->
+        <div class="glass-panel p-6 rounded-2xl space-y-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <h3 class="text-sm font-bold text-white">Known Device Trust Registry (S1)</h3>
+              <p class="text-xs text-slate-400">Multi-login verification progression status</p>
+            </div>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-mono">3 Logins -> Verified</span>
+          </div>
+          <div id="devicesList" class="space-y-2.5 text-xs font-mono max-h-64 overflow-y-auto pr-1">
+            <div class="text-slate-500 py-4 text-center">Loading devices...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 5: DEMONSTRATION ATTACK SCENARIOS RUNNER -->
+    <!-- ===================================================================== -->
+    <div id="view-scenarios" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-2xl">
+        <div class="max-w-3xl mb-6">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-gamepad text-rose-400"></i>
+            <span>Interactive Judge & Demo Attack Scenarios</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            Trigger pre-packaged real-world attack campaigns with 1 click. Watch IdentityGuard detect anomalies across S1-S4 signals, trigger Step-Up challenges, execute terminal session revocations (R11), and bridge events into both SOC feeds.
+          </p>
+        </div>
+
+        <!-- Scenarios Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="scenariosCardGrid">
+          <!-- Dynamically populated via loadScenariosList() -->
+          <div class="p-6 text-center text-slate-500 col-span-2">Loading attack scenarios...</div>
+        </div>
+      </div>
+
+      <!-- Scenario Replay Output Timeline -->
+      <div id="scenarioReplayCard" class="hidden glass-panel p-6 rounded-2xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <div>
+            <h3 class="text-sm font-bold text-white" id="scenarioReplayTitle">Scenario Execution Timeline</h3>
+            <div class="text-xs text-slate-400" id="scenarioReplaySub">Simulated multi-event sequence</div>
+          </div>
+          <button onclick="document.getElementById('scenarioReplayCard').classList.add('hidden')" class="text-slate-400 hover:text-white text-xs">
+            <i class="fa-solid fa-xmark"></i> Dismiss
+          </button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase">
+              <tr>
+                <th class="py-2.5 px-3">Step #</th>
+                <th class="py-2.5 px-3">Action & User</th>
+                <th class="py-2.5 px-3">Device & Geo</th>
+                <th class="py-2.5 px-3">Risk Tier</th>
+                <th class="py-2.5 px-3">Action Enforced</th>
+                <th class="py-2.5 px-3">Session Revoked?</th>
+              </tr>
+            </thead>
+            <tbody id="scenarioReplayTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 6: SANDBOXED REPLAY WORKBENCH (R10) -->
+    <!-- ===================================================================== -->
+    <div id="view-replay" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-2xl border border-indigo-500/20">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-flask-vial text-purple-400"></i>
+              <span>Sandboxed Replay & Policy Determinism Workbench (R10)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1 max-w-2xl">
+              Execute historical event sequences in an isolated in-memory sandbox. Compare candidate rule alterations against production baselines and verify bit-exact SHA-256 decision determinism.
+            </p>
+          </div>
+          <span class="px-3 py-1 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-mono font-semibold">
+            Zero DB Mutation
+          </span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="runScenarioReplay('asha')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow transition">
+            <i class="fa-solid fa-play mr-1"></i> Replay Asha Takeover Slice
+          </button>
+          <button onclick="runScenarioReplay('david')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-xs font-semibold transition border border-slate-700">
+            <i class="fa-solid fa-play mr-1"></i> Replay David Travel Slice
+          </button>
+          <span class="text-xs text-slate-500">Sandbox Isolation: Production SQLite tables remain 100% pristine.</span>
+        </div>
+      </div>
+
+      <!-- Replay Results Diff Output -->
+      <div id="replayResultContainer" class="hidden glass-panel p-6 rounded-2xl space-y-4">
+        <div class="flex flex-wrap justify-between items-center border-b border-slate-800 pb-3 gap-2">
+          <div>
+            <div class="text-sm font-bold text-white font-mono" id="replayRunId">Run ID: -</div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              Deterministic Decision Stream Hash (SHA-256): 
+              <code class="text-indigo-400 font-mono text-[11px]" id="replayStreamHash">-</code>
+            </div>
+          </div>
+          <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full font-mono font-bold">
+            R10 Determinism Verified
+          </span>
+        </div>
+
+        <!-- Delta Stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-slate-400">Events Evaluated:</div>
+            <div class="text-base font-bold text-white font-mono mt-1" id="replayTotalEvents">-</div>
+          </div>
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-slate-400">Stricter Responses:</div>
+            <div class="text-base font-bold text-rose-400 font-mono mt-1" id="replayStricter">-</div>
+          </div>
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-slate-400">Weaker Responses:</div>
+            <div class="text-base font-bold text-amber-400 font-mono mt-1" id="replayWeaker">-</div>
+          </div>
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-slate-400">Execution Time:</div>
+            <div class="text-base font-bold text-emerald-400 font-mono mt-1" id="replayDuration">-</div>
+          </div>
+        </div>
+
+        <!-- Decision Table -->
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase">
+              <tr>
+                <th class="py-2.5 px-3">Event ID</th>
+                <th class="py-2.5 px-3">Session</th>
+                <th class="py-2.5 px-3">Decision</th>
+                <th class="py-2.5 px-3">Deciding Rule</th>
+                <th class="py-2.5 px-3">Explanation</th>
+              </tr>
+            </thead>
+            <tbody id="replayTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 7: CRYPTOGRAPHIC AUDIT LEDGER (R8) -->
+    <!-- ===================================================================== -->
+    <div id="view-audit" class="hidden space-y-6">
+      
+      <!-- Hash Chain Banner -->
+      <div class="glass-panel p-5 rounded-2xl border border-emerald-500/30 flex flex-wrap justify-between items-center gap-4">
+        <div>
+          <div class="text-sm font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-link text-emerald-400"></i>
+            <span>Cryptographic SHA-256 Hash Chain Integrity (R8)</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-1">
+            Every session revocation and administrative action is immutably chained to its predecessor's cryptographic SHA-256 checksum.
+          </div>
+        </div>
+        <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold font-mono">
+          CHAIN INTEGRITY: 100% VALID
+        </span>
+      </div>
+
+      <!-- Audit Records Table -->
+      <div class="glass-panel rounded-2xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900/90 text-slate-400 text-[10px] uppercase tracking-wider">
+              <tr>
+                <th class="py-3 px-4"># ID</th>
+                <th class="py-3 px-4">Actor</th>
+                <th class="py-3 px-4">Action & Target</th>
+                <th class="py-3 px-4">State Transition</th>
+                <th class="py-3 px-4">Previous Hash</th>
+                <th class="py-3 px-4">Row SHA-256 Hash</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="6" class="py-8 text-center text-slate-500">Loading audit ledger...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TAB 8: SOC ANALYST REVIEW QUEUE -->
+    <!-- ===================================================================== -->
+    <div id="view-reviews" class="hidden space-y-6">
+      
+      <div class="glass-panel p-6 rounded-2xl">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center space-x-2">
+              <i class="fa-solid fa-clipboard-check text-sky-400"></i>
+              <span>SOC Analyst Review & Escalation Queue</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Events flagged with ambiguous evidence or advisory signals require manual analyst determination before terminal intervention.
+            </p>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            <select id="selReviewStatusFilter" onchange="loadReviewQueue()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-slate-200">
+              <option value="open">Open Cases</option>
+              <option value="resolved_confirmed_attack">Confirmed Attacks</option>
+              <option value="resolved_false_positive">False Positives</option>
+              <option value="">All Cases</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900/90 text-slate-400 text-[10px] uppercase tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Case ID</th>
+                <th class="py-3 px-4">User</th>
+                <th class="py-3 px-4">Session ID</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Analyst Note / Reason</th>
+                <th class="py-3 px-4">Created At</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="reviewsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-500">Loading review cases...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: EVENT SIMULATOR & BATCH UPLOAD -->
+  <!-- ========================================================================= -->
+  <div id="modalSimulation" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900/95 border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl p-6 space-y-5">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-bolt text-amber-400"></i>
+          <span>Live 5-Field Event & Batch Ingestion Simulator</span>
+        </h3>
+        <button onclick="closeSimulationModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+
+      <!-- Tabs: Single Event vs Batch Upload -->
+      <div class="flex space-x-2 border-b border-slate-800 pb-2 text-xs font-medium">
+        <button onclick="setSimTab('single')" id="btnSimSingle" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white">Single Event</button>
+        <button onclick="setSimTab('batch')" id="btnSimBatch" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800">Batch JSON / CSV</button>
+      </div>
+
+      <!-- Single Event Form -->
+      <div id="simSingleForm" class="space-y-4 text-xs">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">User Identifier</label>
+            <input type="text" id="simUser" value="alex_merchant" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Session ID</label>
+            <input type="text" id="simSession" value="sess_live_1001" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Device ID</label>
+            <input type="text" id="simDevice" value="macbook_pro_m2_corp" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Location Label</label>
+            <select id="simLocation" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white">
+              <option value="Pune, IN">Pune, India</option>
+              <option value="Mumbai, IN">Mumbai, India</option>
+              <option value="London, UK">London, UK (Speed Anomaly)</option>
+              <option value="New York, US">New York, US (Speed Anomaly)</option>
+              <option value="Lagos, NG">Lagos, Nigeria (ATO Target)</option>
+              <option value="Tokyo, JP">Tokyo, Japan</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1 font-medium">Action</label>
+          <select id="simAction" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-2.5 text-white font-mono">
+            <option value="view_dashboard">view_dashboard</option>
+            <option value="login">login</option>
+            <option value="update_email">update_email (Sensitive Action)</option>
+            <option value="transfer_funds">transfer_funds (High Value)</option>
+            <option value="download_statement">download_statement</option>
+          </select>
+        </div>
+
+        <button onclick="submitSingleEventSimulation()" id="btnSubmitSim" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition">
+          <i class="fa-solid fa-paper-plane mr-1"></i> Transmit & Evaluate Event
+        </button>
+      </div>
+
+      <!-- Batch Upload Form -->
+      <div id="simBatchForm" class="hidden space-y-4 text-xs">
+        <div class="border-2 border-dashed border-slate-700 hover:border-indigo-500 rounded-2xl p-6 text-center space-y-2 cursor-pointer" onclick="document.getElementById('fileUploadBatch').click()">
+          <i class="fa-solid fa-cloud-arrow-up text-3xl text-indigo-400"></i>
+          <div class="text-sm font-semibold text-white">Click to Select Batch File</div>
+          <div class="text-slate-400 text-[11px]">Supports `.json` (array of 5-field events) or `.csv` files</div>
+          <input type="file" id="fileUploadBatch" class="hidden" accept=".json,.csv" onchange="handleFileSelect(event)">
+        </div>
+        <div id="fileUploadStatus" class="hidden text-xs text-indigo-300 font-mono p-2 bg-slate-950 rounded"></div>
+        <button onclick="uploadBatchFile()" id="btnSubmitBatch" class="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-semibold transition" disabled>
+          <i class="fa-solid fa-upload mr-1"></i> Upload & Evaluate Batch
+        </button>
+      </div>
+
+      <!-- Simulation Result Alert Box -->
+      <div id="simResultBox" class="hidden p-3 rounded-xl border text-xs"></div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DECISION DETAIL & AI FORENSICS DRILLDOWN -->
+  <!-- ========================================================================= -->
+  <div id="detailModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white" id="modalTitle">Decision Breakdown</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs" id="modalContent">
+        <!-- Injected via JS -->
+      </div>
+      <div class="text-right border-t border-slate-800 pt-3">
+        <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-xs transition">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: POLICY THRESHOLDS CONFIGURATION -->
+  <!-- ========================================================================= -->
+  <div id="modalPolicy" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-panel bg-slate-900 border border-slate-700 w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white flex items-center space-x-2">
+          <i class="fa-solid fa-sliders text-indigo-400"></i>
+          <span>Live Policy Configuration</span>
+        </h3>
+        <button onclick="closePolicyModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Impossible Travel Speed Threshold (km/h): <b id="valSpeedThresh" class="text-indigo-400">750</b> km/h</label>
+          <input type="range" id="rangeSpeed" min="400" max="1500" step="50" value="750" oninput="document.getElementById('valSpeedThresh').innerText=this.value" class="w-full">
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Sensitive Action Window (seconds): <b id="valWindowThresh" class="text-indigo-400">600</b>s</label>
+          <input type="range" id="rangeWindow" min="120" max="1800" step="60" value="600" oninput="document.getElementById('valWindowThresh').innerText=this.value" class="w-full">
+        </div>
+        <div class="grid grid-cols-3 gap-2">
+          <div>
+            <label class="block text-slate-400 mb-1">Medium Risk</label>
+            <input type="number" id="numMed" value="35" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">High Risk</label>
+            <input type="number" id="numHigh" value="65" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Critical Risk</label>
+            <input type="number" id="numCrit" value="80" class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white font-mono">
+          </div>
+        </div>
+        <button onclick="savePolicyConfig()" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold transition">
+          Save & Synchronize Policies
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Alert -->
+  <div id="toastAlert" class="hidden fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-2xl flex items-center space-x-3 text-xs border transition transform duration-300"></div>
+
+  <!-- ========================================================================= -->
+  <!-- CORE JAVASCRIPT CONTROLLER -->
+  <!-- ========================================================================= -->
+  <script>
+    // State Registers
+    let diurnalChartInstance = null;
+    let leafletMapInstance = null;
+    let mapMarkers = [];
+    let mapPolylines = [];
+    let eventSource = null;
+    let selectedBatchFile = null;
+
+    const KNOWN_GEO_COORDS = {
+      'Pune': [18.5204, 73.8567],
+      'Pune, IN': [18.5204, 73.8567],
+      'Mumbai': [19.0760, 72.8777],
+      'Mumbai, IN': [19.0760, 72.8777],
+      'London': [51.5074, -0.1278],
+      'London, UK': [51.5074, -0.1278],
+      'New York': [40.7128, -74.0060],
+      'New York, USA': [40.7128, -74.0060],
+      'New York, US': [40.7128, -74.0060],
+      'Lagos, NG': [6.5244, 3.3792],
+      'Singapore, SG': [1.3521, 103.8198],
+      'Tokyo, JP': [35.6762, 139.6503]
+    };
+
+    // -------------------------------------------------------------
+    // Tab Navigation
+    // -------------------------------------------------------------
+    function switchTab(tab) {
+      const allTabs = ['feed', 'worldmap', 'sessions', 'profile', 'scenarios', 'replay', 'audit', 'reviews'];
+      allTabs.forEach(t => {
+        const view = document.getElementById('view-' + t);
+        if (view) view.classList.add('hidden');
+        const btn = document.getElementById('tab-' + t);
+        if (btn) btn.className = "px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition flex items-center space-x-1.5";
+      });
+
+      const targetView = document.getElementById('view-' + tab);
+      if (targetView) targetView.classList.remove('hidden');
+      const targetBtn = document.getElementById('tab-' + tab);
+      if (targetBtn) targetBtn.className = "px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white shadow-sm transition flex items-center space-x-1.5";
+
+      if (tab === 'feed') loadDecisionsFeed();
+      if (tab === 'worldmap') {
+        setTimeout(initLeafletMap, 150);
+      }
+      if (tab === 'sessions') loadSessionsInventory();
+      if (tab === 'profile') loadProfile('asha');
+      if (tab === 'scenarios') loadScenariosList();
+      if (tab === 'audit') loadAuditLedger();
+      if (tab === 'reviews') loadReviewQueue();
+    }
+
+    // -------------------------------------------------------------
+    // Metrics Loading
+    // -------------------------------------------------------------
+    async function loadMetrics() {
+      try {
+        const qRes = await fetch('/api/quality');
+        const qData = await qRes.json();
+        document.getElementById('metricTotalEvents').innerText = qData.total_events || 0;
+        document.getElementById('metricLate').innerText = qData.late_events || 0;
+
+        const decRes = await fetch('/api/decisions?limit=250');
+        const decs = await decRes.json();
+        const revokes = decs.filter(d => d.response === 'revoke' || d.response === 'refused_session_revoked').length;
+        const stepups = decs.filter(d => d.response === 'step_up').length;
+
+        document.getElementById('metricRevocations').innerText = revokes;
+        document.getElementById('metricStepUps').innerText = stepups;
+
+        const sessRes = await fetch('/api/sessions');
+        const sessions = await sessRes.json();
+        const activeCount = sessions.filter(s => !s.is_revoked).length;
+        document.getElementById('metricActiveSessions').innerText = activeCount;
+
+        // Check review badge
+        const revRes = await fetch('/api/reviews?status_filter=open');
+        const reviews = await revRes.json();
+        const rBadge = document.getElementById('badgeOpenReviewsCount');
+        if (rBadge) {
+          if (reviews.length > 0) {
+            rBadge.innerText = reviews.length;
+            rBadge.classList.remove('hidden');
+          } else {
+            rBadge.classList.add('hidden');
+          }
+        }
+      } catch (err) {
+        console.error("Metric sync error", err);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Decisions Feed (Table + Filter)
+    // -------------------------------------------------------------
+    async function loadDecisionsFeed() {
+      const respFilter = document.getElementById('filterResponse').value;
+      const userFilter = document.getElementById('filterUser').value.trim();
+
+      let url = '/api/decisions?limit=60';
+      if (respFilter) url += '&response=' + encodeURIComponent(respFilter);
+      if (userFilter) url += '&user=' + encodeURIComponent(userFilter);
+
+      try {
+        const res = await fetch(url);
+        const decisions = await res.json();
+        const tbody = document.getElementById('decisionsTableBody');
+
+        if (!decisions.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-slate-500">No decisions match current filter criteria.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = decisions.map(d => renderDecisionRow(d)).join('');
+      } catch (e) {
+        console.error("Error loading decisions", e);
+      }
+    }
+
+    function resetFeedFilters() {
+      document.getElementById('filterResponse').value = '';
+      document.getElementById('filterUser').value = '';
+      loadDecisionsFeed();
+    }
+
+    function renderDecisionRow(d, isNew = false) {
+      let badgeClass = "badge-noaction";
+      if (d.response === 'revoke') badgeClass = "badge-revoke";
+      else if (d.response === 'step_up') badgeClass = "badge-stepup";
+      else if (d.response === 'analyst_review') badgeClass = "badge-review";
+      else if (d.response === 'refused_session_revoked') badgeClass = "badge-refused";
+
+      const timeStr = d.created_at ? d.created_at.substring(11, 19) : new Date().toLocaleTimeString();
+      const highlightClass = isNew 
+        ? "bg-indigo-950/70 border-l-4 border-indigo-500 animate-pulse transition duration-1000" 
+        : "hover:bg-slate-800/40 transition";
+
+      return `
+        <tr class="${highlightClass}" id="row-${d.decision_id}">
+          <td class="py-3 px-4">
+            <div class="text-white font-medium">${timeStr}</div>
+            <div class="text-[10px] text-slate-500">${d.event_id || 'evt_live'}</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="text-indigo-300 font-semibold">${d.user}</div>
+            <div class="text-[10px] text-slate-500 truncate max-w-[130px] font-mono">${d.session_id}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${(d.response || 'NO_ACTION').toUpperCase()}</span>
+            <div class="text-[10px] text-slate-400 mt-1 font-mono">${d.deciding_rule || 'N/A'}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="text-[11px] text-slate-300 font-bold">${d.evidence_level || 'N/A'}</span>
+          </td>
+          <td class="py-3 px-4 font-sans text-xs text-slate-300 max-w-md">
+            ${d.explanation || 'No summary'}
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button onclick='showDetail(${JSON.stringify(d).replace(/'/g, "&#39;")})' class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-indigo-400 hover:text-indigo-300 text-xs font-sans transition">
+              Inspect &rarr;
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    // -------------------------------------------------------------
+    // Leaflet Interactive Threat Map
+    // -------------------------------------------------------------
+    function initLeafletMap() {
+      const container = document.getElementById('leafletThreatMap');
+      if (!container) return;
+
+      if (!leafletMapInstance) {
+        leafletMapInstance = L.map('leafletThreatMap', {
+          center: [25.0, 30.0],
+          zoom: 2,
+          minZoom: 2,
+          maxZoom: 10
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(leafletMapInstance);
+      } else {
+        leafletMapInstance.invalidateSize();
+      }
+
+      plotActiveThreatMapLocations();
+    }
+
+    async function plotActiveThreatMapLocations() {
+      if (!leafletMapInstance) return;
+
+      // Clear existing markers & lines
+      mapMarkers.forEach(m => leafletMapInstance.removeLayer(m));
+      mapPolylines.forEach(p => leafletMapInstance.removeLayer(p));
+      mapMarkers = [];
+      mapPolylines = [];
+
+      try {
+        const res = await fetch('/api/decisions?limit=50');
+        const decisions = await res.json();
+
+        decisions.forEach(d => {
+          let locLabel = 'Pune, IN';
+          const match = (d.explanation || '').match(/(?:from|in)\s+([A-Za-z\s,]+)/);
+          if (match && match[1]) locLabel = match[1].trim();
+
+          // Resolve coords
+          let coords = KNOWN_GEO_COORDS[locLabel];
+          if (!coords) {
+            for (const k in KNOWN_GEO_COORDS) {
+              if (locLabel.includes(k) || k.includes(locLabel)) {
+                coords = KNOWN_GEO_COORDS[k];
+                break;
+              }
+            }
+          }
+          if (!coords) coords = [18.5204, 73.8567]; // default Pune
+
+          const isDanger = d.response === 'revoke' || d.response === 'refused_session_revoked';
+          const markerColor = isDanger ? '#f43f5e' : (d.response === 'step_up' ? '#f59e0b' : '#10b981');
+
+          const circle = L.circleMarker(coords, {
+            radius: isDanger ? 9 : 6,
+            fillColor: markerColor,
+            color: '#ffffff',
+            weight: 1.5,
+            opacity: 0.9,
+            fillOpacity: 0.8
+          }).addTo(leafletMapInstance);
+
+          circle.bindPopup(`
+            <div style="font-family:sans-serif;font-size:12px;color:#0f172a;min-width:180px;">
+              <b style="color:${markerColor};text-transform:uppercase;">${d.response}</b><br/>
+              <b>User:</b> ${d.user}<br/>
+              <b>Session:</b> <code style="font-size:10px;">${d.session_id}</code><br/>
+              <p style="margin-top:4px;font-size:11px;color:#475569;">${d.explanation}</p>
+            </div>
+          `);
+
+          mapMarkers.push(circle);
+
+          // If impossible travel, draw arc from Pune to target location
+          if (d.explanation && d.explanation.includes('speed') && coords[0] !== 18.5204) {
+            const line = L.polyline([[18.5204, 73.8567], coords], {
+              color: '#f43f5e',
+              weight: 2,
+              dashArray: '5, 8',
+              opacity: 0.7
+            }).addTo(leafletMapInstance);
+            mapPolylines.push(line);
+          }
+        });
+
+      } catch (e) {
+        console.error("Error plotting map points", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Sessions Inventory & Kill-Switch
+    // -------------------------------------------------------------
+    async function loadSessionsInventory() {
+      try {
+        const res = await fetch('/api/sessions');
+        const sessions = await res.json();
+        const tbody = document.getElementById('sessionsTableBody');
+
+        if (!sessions.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-500">No active or recorded sessions found.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = sessions.map(s => {
+          const isRev = s.is_revoked;
+          const statusBadge = isRev 
+            ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/40">REVOKED (R11)</span>`
+            : `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">ACTIVE</span>`;
+
+          const btnAction = isRev
+            ? `<span class="text-slate-500 text-[11px] italic">Terminated</span>`
+            : `<button onclick="triggerEmergencyKill('${s.session_id}')" class="px-2.5 py-1 rounded bg-rose-600 hover:bg-rose-500 text-white font-sans text-xs transition shadow-sm">
+                <i class="fa-solid fa-power-off mr-1"></i> Revoke
+               </button>`;
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-3 px-4 font-bold text-white">${s.session_id}</td>
+              <td class="py-3 px-4 text-indigo-300 font-semibold">${s.user}</td>
+              <td class="py-3 px-4 text-slate-400">${s.device}</td>
+              <td class="py-3 px-4 text-slate-300">${s.last_location}</td>
+              <td class="py-3 px-4">${statusBadge}</td>
+              <td class="py-3 px-4 text-slate-400 text-[11px]">${s.last_active ? new Date(s.last_active * 1000).toLocaleTimeString() : 'N/A'}</td>
+              <td class="py-3 px-4 text-right">${btnAction}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error("Error loading sessions inventory", e);
+      }
+    }
+
+    async function triggerEmergencyKill(sessionId) {
+      if (!confirm(`EMERGENCY INTERVENTION:\nRevoke session '${sessionId}' immediately?\nDownstream banking transactions will be blocked (HTTP 403).`)) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/sessions/revoke', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: sessionId,
+            reason: "SOC Analyst Manual Emergency Kill-Switch"
+          })
+        });
+        const data = await res.json();
+        showToast("Session Revoked", `Session '${sessionId}' terminated with audit entry.`, "danger");
+        loadSessionsInventory();
+        loadMetrics();
+      } catch (e) {
+        showToast("Revocation Failed", e.message, "danger");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // User Profiles & Diurnal Dynamics
+    // -------------------------------------------------------------
+    async function loadProfile(userId) {
+      ['asha', 'david', 'elena'].forEach(u => {
+        const btn = document.getElementById('btnPersona-' + u);
+        if (btn) {
+          if (u === userId) btn.className = "px-3.5 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold transition";
+          else btn.className = "px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition";
+        }
+      });
+
+      try {
+        const res = await fetch('/api/users/' + userId + '/profile');
+        const prof = await res.json();
+
+        document.getElementById('profUserId').innerText = prof.user;
+        document.getElementById('profEvidence').innerText = "Evidence: " + prof.evidence_level.toUpperCase();
+        document.getElementById('profEventsCount').innerText = prof.total_events + " events";
+        document.getElementById('profDaysCount').innerText = prof.active_days_count + " active baseline days";
+        document.getElementById('profHomeLoc').innerText = prof.home_location;
+        document.getElementById('profHomeTz').innerText = prof.home_timezone;
+        document.getElementById('profDevicesCount').innerText = prof.devices.length + " devices";
+
+        renderDiurnalChart(prof.hour_histogram);
+
+        const devContainer = document.getElementById('devicesList');
+        if (!prof.devices.length) {
+          devContainer.innerHTML = '<div class="text-slate-500 py-4 text-center">No devices registered for this user yet.</div>';
+        } else {
+          devContainer.innerHTML = prof.devices.map(d => `
+            <div class="p-3 bg-slate-900/90 rounded-xl border border-slate-800 flex justify-between items-center">
+              <div>
+                <div class="font-bold text-slate-200">${d.device_id}</div>
+                <div class="text-[10px] text-slate-500">Logins: ${d.login_count} • Events: ${d.event_count}</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${d.state === 'verified' || d.state === 'known' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+                ${d.state.toUpperCase()}
+              </span>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error("Error loading profile", e);
+      }
+    }
+
+    function renderDiurnalChart(hourHistogram) {
+      const ctx = document.getElementById('diurnalChart').getContext('2d');
+      if (diurnalChartInstance) {
+        diurnalChartInstance.destroy();
+      }
+
+      const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+
+      diurnalChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Smoothed Probability Share (%)',
+            data: hourHistogram,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+            borderWidth: 2.5,
+            tension: 0.35,
+            fill: true,
+            pointRadius: 2,
+            pointHoverRadius: 5
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    // -------------------------------------------------------------
+    // Attack Scenarios Demo Hub
+    // -------------------------------------------------------------
+    async function loadScenariosList() {
+      try {
+        const res = await fetch('/api/scenarios');
+        const scenarios = await res.json();
+        const grid = document.getElementById('scenariosCardGrid');
+
+        grid.innerHTML = scenarios.map(s => `
+          <div class="glass-panel p-5 rounded-2xl border border-slate-800 glass-card-hover flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex justify-between items-start mb-2">
+                <span class="px-2.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 font-mono">${s.id}</span>
+                <span class="text-xs text-slate-400 font-mono">${s.event_count} Events</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">${s.name}</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">${s.description}</p>
+            </div>
+            <div class="flex justify-between items-center pt-3 border-t border-slate-800/80">
+              <span class="text-xs text-indigo-400 font-mono">User: <b>${s.user}</b></span>
+              <button onclick="executeAttackScenario('${s.id}')" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition shadow flex items-center space-x-1.5">
+                <i class="fa-solid fa-play text-[10px]"></i>
+                <span>Launch Replay</span>
+              </button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) {
+        console.error("Error loading scenarios", e);
+      }
+    }
+
+    async function executeAttackScenario(scenarioId) {
+      showToast("Executing Attack Scenario", `Simulating sequence '${scenarioId}'...`, "info");
+      try {
+        const res = await fetch('/api/scenarios/replay', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario_id: scenarioId })
+        });
+        const timeline = await res.json();
+
+        const card = document.getElementById('scenarioReplayCard');
+        card.classList.remove('hidden');
+        document.getElementById('scenarioReplayTitle').innerText = "Execution Trace: " + scenarioId;
+        document.getElementById('scenarioReplaySub').innerText = `${timeline.length} sequential events evaluated through IdentityGuard Engine`;
+
+        const tbody = document.getElementById('scenarioReplayTableBody');
+        tbody.innerHTML = timeline.map((step, idx) => {
+          let badge = "badge-noaction";
+          if (step.action_enforced === 'revoke') badge = "badge-revoke";
+          else if (step.action_enforced === 'step_up_verification') badge = "badge-stepup";
+
+          return `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-2.5 px-3 font-bold text-indigo-400">#${idx + 1}</td>
+              <td class="py-2.5 px-3">
+                <div class="font-bold text-white">${step.event.action}</div>
+                <div class="text-[10px] text-slate-500">${step.event.user}</div>
+              </td>
+              <td class="py-2.5 px-3">
+                <div>${step.event.device_id}</div>
+                <div class="text-[10px] text-slate-500">${step.event.location_label}</div>
+              </td>
+              <td class="py-2.5 px-3 font-bold uppercase ${step.risk_tier === 'critical' ? 'text-rose-400' : (step.risk_tier === 'high' ? 'text-amber-400' : 'text-emerald-400')}">
+                ${step.risk_tier} (${step.risk_score})
+              </td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge}">${step.action_enforced.toUpperCase()}</span></td>
+              <td class="py-2.5 px-3 font-bold ${step.session_is_revoked ? 'text-rose-400' : 'text-slate-500'}">
+                ${step.session_is_revoked ? 'REVOKED (TERMINATED)' : 'ACTIVE'}
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        // Fire celebration confetti if takeover was successfully revoked
+        if (timeline.some(t => t.session_is_revoked)) {
+          confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.8 }
+          });
+        }
+
+        loadMetrics();
+      } catch (e) {
+        showToast("Execution Error", e.message, "danger");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // R10 Deterministic Replay Sandbox
+    // -------------------------------------------------------------
+    async function runScenarioReplay(user) {
+      try {
+        const res = await fetch('/api/replay/slice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: user })
+        });
+        const data = await res.json();
+
+        document.getElementById('replayResultContainer').classList.remove('hidden');
+        document.getElementById('replayRunId').innerText = "Run ID: " + data.replay_run_id;
+        document.getElementById('replayStreamHash').innerText = data.decision_stream_hash;
+        document.getElementById('replayTotalEvents').innerText = data.total_events;
+        document.getElementById('replayStricter').innerText = data.diff?.stricter_count || 0;
+        document.getElementById('replayWeaker').innerText = data.diff?.weaker_count || 0;
+        document.getElementById('replayDuration').innerText = data.duration_ms + " ms";
+
+        const tbody = document.getElementById('replayTableBody');
+        tbody.innerHTML = data.decisions.map(d => `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2 px-3 text-slate-400">${d.event_id}</td>
+            <td class="py-2 px-3 text-white">${d.session_id}</td>
+            <td class="py-2 px-3 font-bold text-indigo-400">${d.response.toUpperCase()}</td>
+            <td class="py-2 px-3 text-slate-300">${d.deciding_rule || 'N/A'}</td>
+            <td class="py-2 px-3 font-sans text-xs text-slate-400 max-w-sm truncate">${d.explanation_text}</td>
+          </tr>
+        `).join('');
+
+      } catch (e) {
+        alert("Replay failed: " + e.message);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Cryptographic Audit Ledger
+    // -------------------------------------------------------------
+    async function loadAuditLedger() {
+      try {
+        const res = await fetch('/api/audit');
+        const data = await res.json();
+        const tbody = document.getElementById('auditTableBody');
+
+        if (!data.logs.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500">No audit log records recorded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.logs.map(l => `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-3 px-4 font-bold text-indigo-400">#${l.audit_id}</td>
+            <td class="py-3 px-4 text-slate-200">${l.actor}</td>
+            <td class="py-3 px-4">
+              <span class="text-white font-semibold">${l.action}</span>
+              <div class="text-[10px] text-slate-500">${l.target}</div>
+            </td>
+            <td class="py-3 px-4 font-sans text-xs text-slate-300">
+              <span class="text-slate-500">${l.before_state || 'none'}</span> &rarr; <span class="text-emerald-400 font-bold">${l.after_state || 'none'}</span>
+            </td>
+            <td class="py-3 px-4 text-[10px] text-slate-500 truncate max-w-[100px]">${l.prev_hash}</td>
+            <td class="py-3 px-4 text-[10px] text-indigo-300 truncate max-w-[120px] font-bold">${l.row_hash}</td>
+          </tr>
+        `).join('');
+
+      } catch (e) {
+        console.error("Error loading audit log", e);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // SOC Analyst Review Queue
+    // -------------------------------------------------------------
+    async function loadReviewQueue() {
+      const statusFilter = document.getElementById('selReviewStatusFilter').value;
+      let url = '/api/reviews';
+      if (statusFilter) url += '?status_filter=' + encodeURIComponent(statusFilter);
+
+      try {
+        const res = await fetch(url);
+        const cases = await res.json();
+        const tbody = document.getElementById('reviewsTableBody');
+
+        if (!cases.length) {
+          tbody.innerHTML = '<tr><td colspan="7" class="py-8 text-center text-slate-500">No review cases in this queue view.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = cases.map(c => {
+          let badge = "bg-amber-500/20 text-amber-300 border-amber-500/40";
+          if (c.status.includes('attack')) badge = "bg-rose-500/20 text-rose-300 border-rose-500/40";
+          if (c.status.includes('positive')) badge = "bg-emerald-500/20 text-emerald-300 border-emerald-500/40";
+
+          const actionHtml = c.status === 'open' 
+            ? `<div class="flex justify-end space-x-1.5 font-sans">
+                <button onclick="resolveReviewCase('${c.case_id}', 'resolved_confirmed_attack')" class="px-2 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-[10px] font-semibold">Confirm Attack</button>
+                <button onclick="resolveReviewCase('${c.case_id}', 'resolved_false_positive')" class="px-2 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[10px] font-semibold">Approve</button>
+               </div>`
+            : `<span class="text-slate-500 text-[10px] italic">Resolved</span>`;
+
+          return `
+            <tr class="hover:bg-slate-800/40">
+              <td class="py-3 px-4 font-bold text-white">${c.case_id}</td>
+              <td class="py-3 px-4 text-indigo-300">${c.user}</td>
+              <td class="py-3 px-4 text-slate-400 font-mono text-[10px]">${c.session_id}</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badge}">${c.status.toUpperCase()}</span></td>
+              <td class="py-3 px-4 font-sans text-xs text-slate-300">${c.analyst_note || 'N/A'}</td>
+              <td class="py-3 px-4 text-[10px] text-slate-400">${c.created_at ? c.created_at.substring(11, 19) : 'N/A'}</td>
+              <td class="py-3 px-4 text-right">${actionHtml}</td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error("Error loading reviews", e);
+      }
+    }
+
+    async function resolveReviewCase(caseId, resolutionStatus) {
+      const note = prompt("Enter SOC Analyst determination note:", resolutionStatus === 'resolved_confirmed_attack' ? "Confirmed account takeover pattern" : "Verified authorized user action");
+      if (note === null) return;
+
+      try {
+        const res = await fetch(`/api/reviews/${encodeURIComponent(caseId)}/resolve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            status: resolutionStatus,
+            analyst: "SOC_OPERATOR_1",
+            note: note
+          })
+        });
+        showToast("Case Resolved", `Case ${caseId} updated to ${resolutionStatus}`, "success");
+        loadReviewQueue();
+        loadMetrics();
+      } catch (e) {
+        showToast("Error", e.message, "danger");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Simulator & Batch Upload Handlers
+    // -------------------------------------------------------------
+    function openSimulationModal() {
+      document.getElementById('modalSimulation').classList.remove('hidden');
+      document.getElementById('simResultBox').classList.add('hidden');
+    }
+
+    function closeSimulationModal() {
+      document.getElementById('modalSimulation').classList.add('hidden');
+    }
+
+    function setSimTab(tab) {
+      if (tab === 'single') {
+        document.getElementById('simSingleForm').classList.remove('hidden');
+        document.getElementById('simBatchForm').classList.add('hidden');
+        document.getElementById('btnSimSingle').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white";
+        document.getElementById('btnSimBatch').className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800";
+      } else {
+        document.getElementById('simSingleForm').classList.add('hidden');
+        document.getElementById('simBatchForm').classList.remove('hidden');
+        document.getElementById('btnSimBatch').className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white";
+        document.getElementById('btnSimSingle').className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800";
+      }
+    }
+
+    async function submitSingleEventSimulation() {
+      const btn = document.getElementById('btnSubmitSim');
+      const box = document.getElementById('simResultBox');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Transmitting...`;
+
+      const payload = {
+        timestamp: Date.now() / 1000,
+        user: document.getElementById('simUser').value.trim(),
+        session_id: document.getElementById('simSession').value.trim(),
+        device_id: document.getElementById('simDevice').value.trim(),
+        location_label: document.getElementById('simLocation').value,
+        action: document.getElementById('simAction').value
+      };
+
+      try {
+        const res = await fetch('/api/events/evaluate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        box.classList.remove('hidden');
+        const isDanger = data.session_is_revoked;
+        box.className = isDanger 
+          ? "p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 font-mono text-xs"
+          : "p-3 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-emerald-300 font-mono text-xs";
+
+        box.innerHTML = `
+          <div class="font-bold uppercase tracking-wider mb-1">${isDanger ? '🛑 SESSION REVOKED (TERMINATED)' : '🛡️ ACTION EVALUATED'}</div>
+          <div>Decision: <b>${data.action_enforced.toUpperCase()}</b> | Risk Score: <b>${data.risk_score} (${data.risk_tier.toUpperCase()})</b></div>
+          <div class="text-[11px] text-slate-300 mt-1 font-sans">${data.explanation}</div>
+        `;
+
+        showToast("Event Evaluated", `Action evaluated with score ${data.risk_score}`, isDanger ? "danger" : "success");
+        loadMetrics();
+      } catch (e) {
+        box.classList.remove('hidden');
+        box.className = "p-3 rounded-xl border border-rose-500/40 bg-rose-500/10 text-rose-300 font-mono text-xs";
+        box.innerText = "Error: " + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-paper-plane mr-1"></i> Transmit & Evaluate Event`;
+      }
+    }
+
+    function handleFileSelect(e) {
+      selectedBatchFile = e.target.files[0];
+      const status = document.getElementById('fileUploadStatus');
+      const btn = document.getElementById('btnSubmitBatch');
+      if (selectedBatchFile) {
+        status.innerText = `Selected: ${selectedBatchFile.name} (${Math.round(selectedBatchFile.size / 1024)} KB)`;
+        status.classList.remove('hidden');
+        btn.disabled = false;
+      }
+    }
+
+    async function uploadBatchFile() {
+      if (!selectedBatchFile) return;
+      const formData = new FormData();
+      formData.append("file", selectedBatchFile);
+
+      const btn = document.getElementById('btnSubmitBatch');
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Processing Batch...`;
+
+      try {
+        const res = await fetch('/api/events/upload-file', {
+          method: 'POST',
+          body: formData
+        });
+        const results = await res.json();
+        showToast("Batch Upload Complete", `Successfully ingested & evaluated ${results.length} events!`, "success");
+        closeSimulationModal();
+        loadMetrics();
+        loadDecisionsFeed();
+      } catch (e) {
+        showToast("Batch Upload Failed", e.message, "danger");
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-upload mr-1"></i> Upload & Evaluate Batch`;
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Policy Configuration Handlers
+    // -------------------------------------------------------------
+    async function openPolicyModal() {
+      try {
+        const res = await fetch('/api/policy');
+        const p = await res.json();
+        document.getElementById('rangeSpeed').value = p.impossible_travel_speed_kmh;
+        document.getElementById('valSpeedThresh').innerText = p.impossible_travel_speed_kmh;
+        document.getElementById('rangeWindow').value = p.sensitive_window_seconds;
+        document.getElementById('valWindowThresh').innerText = p.sensitive_window_seconds;
+        document.getElementById('numMed').value = p.medium_risk_threshold;
+        document.getElementById('numHigh').value = p.high_risk_threshold;
+        document.getElementById('numCrit').value = p.critical_risk_threshold;
+        document.getElementById('modalPolicy').classList.remove('hidden');
+      } catch (e) {
+        console.error("Error opening policy modal", e);
+      }
+    }
+
+    function closePolicyModal() {
+      document.getElementById('modalPolicy').classList.add('hidden');
+    }
+
+    async function savePolicyConfig() {
+      const payload = {
+        medium_risk_threshold: parseInt(document.getElementById('numMed').value),
+        high_risk_threshold: parseInt(document.getElementById('numHigh').value),
+        critical_risk_threshold: parseInt(document.getElementById('numCrit').value),
+        impossible_travel_speed_kmh: parseFloat(document.getElementById('rangeSpeed').value),
+        sensitive_window_seconds: parseInt(document.getElementById('rangeWindow').value)
+      };
+
+      try {
+        const res = await fetch('/api/policy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showToast("Policy Synchronized", "Updated thresholds synchronized across all detection layers.", "success");
+        closePolicyModal();
+      } catch (e) {
+        showToast("Update Failed", e.message, "danger");
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Decision Detail & Gemini 2.5 Forensics Drilldown
+    // -------------------------------------------------------------
+    function showDetail(dec) {
+      document.getElementById('modalTitle').innerText = `Decision Drilldown: ${dec.decision_id}`;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800 font-mono">
+          <div><span class="text-slate-400">User:</span> <b>${dec.user}</b></div>
+          <div><span class="text-slate-400">Response:</span> <b class="text-indigo-400">${dec.response}</b></div>
+          <div><span class="text-slate-400">Deciding Rule:</span> <b>${dec.deciding_rule || 'N/A'}</b></div>
+          <div><span class="text-slate-400">Evidence Level:</span> <b>${dec.evidence_level}</b></div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-slate-400 font-semibold">Plain-English Explanation:</div>
+          <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 font-sans text-slate-200 leading-relaxed">${dec.explanation}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-slate-400 font-semibold">Signals Evaluated:</div>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto font-mono text-[11px]">
+            ${(dec.signals || []).map(s => `
+              <div class="p-2 bg-slate-950 rounded-lg border border-slate-800 flex justify-between items-center">
+                <span>${s.name} (${s.signal_id})</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.status === 'triggered' ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-slate-400'}">${s.status.toUpperCase()}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Stage C: Gemini 2.5 LLM Forensics Drilldown -->
+        <div class="pt-3 border-t border-slate-800">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold text-indigo-400 flex items-center space-x-1.5">
+              <i class="fa-solid fa-brain text-xs"></i>
+              <span>AI Threat Forensics & MITRE ATT&CK Mapping</span>
+            </span>
+            <button id="btnGenForensics" onclick='requestForensicReport("${dec.decision_id}")' class="px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-[11px] font-medium flex items-center space-x-1.5 transition shadow">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Synthesize Forensics</span>
+            </button>
+          </div>
+          <div id="forensicsReportArea" class="hidden space-y-2 p-3 bg-slate-950 rounded-xl border border-indigo-900/40 text-xs">
+          </div>
+        </div>
+      `;
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    async function requestForensicReport(decisionId) {
+      const btn = document.getElementById('btnGenForensics');
+      const area = document.getElementById('forensicsReportArea');
+      if (!btn || !area) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Synthesizing...`;
+      area.classList.remove('hidden');
+      area.innerHTML = `<div class="text-slate-400 text-center py-4"><i class="fa-solid fa-spinner fa-spin text-indigo-400 mr-2"></i>Synthesizing MITRE ATT&CK telemetry & behavioral hypotheses...</div>`;
+
+      try {
+        const res = await fetch(`/api/decisions/${encodeURIComponent(decisionId)}/forensics`, {
+          method: 'POST'
+        });
+        if (!res.ok) throw new Error("Server returned " + res.status);
+        const report = await res.json();
+
+        let badgeColor = "text-rose-400 bg-rose-500/20 border-rose-500/40";
+        if (report.threat_level === "ELEVATED") badgeColor = "text-amber-400 bg-amber-500/20 border-amber-500/40";
+        if (report.threat_level === "LOW") badgeColor = "text-emerald-400 bg-emerald-500/20 border-emerald-500/40";
+
+        area.innerHTML = `
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${report.threat_level} THREAT</span>
+              <span class="text-[10px] text-slate-500 ml-2 font-mono">Model: ${report.model_source}</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">${report.report_id}</span>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Executive Summary:</div>
+            <div class="text-slate-300 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 leading-relaxed">${report.executive_summary}</div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Tactical Adversary Hypothesis:</div>
+            <div class="text-slate-300 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 leading-relaxed">${report.attack_hypothesis}</div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">MITRE ATT&CK Framework Mapping:</div>
+            <div class="grid grid-cols-1 gap-1.5">
+              ${(report.mitre_attack || []).map(m => `
+                <div class="p-2.5 bg-slate-900/90 rounded-lg border border-slate-800 flex flex-col">
+                  <div class="flex justify-between items-center mb-1">
+                    <span class="font-mono text-cyan-400 font-bold text-[11px]">${m.technique_id} - ${m.technique_name}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold">${m.tactic}</span>
+                  </div>
+                  <div class="text-slate-400 text-[10px] leading-relaxed">${m.description}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Recommended SOC Remediation:</div>
+            <ul class="list-disc list-inside space-y-1 text-slate-300 bg-slate-900/80 p-2.5 rounded-lg border border-slate-800">
+              ${(report.recommended_soc_actions || []).map(a => `<li>${a}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="text-[10px] text-slate-500 italic pt-1 border-t border-slate-800">
+            ${report.compliance_note}
+          </div>
+        `;
+        btn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Analysis Ready`;
+      } catch (err) {
+        area.innerHTML = `<div class="text-rose-400 p-2">Failed to generate forensic report: ${err.message}</div>`;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-rotate-right mr-1"></i> Retry`;
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    // -------------------------------------------------------------
+    // Quick Re-seed Database
+    // -------------------------------------------------------------
+    async function triggerQuickSeed() {
+      if (confirm("Reset and re-seed database baseline with Asha, David, and Elena personas?")) {
+        try {
+          await fetch('/api/reset', { method: 'POST' });
+          showToast("Personas Reset", "Baseline states restored cleanly.", "success");
+          setTimeout(() => window.location.reload(), 1000);
+        } catch (e) {
+          window.location.reload();
+        }
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Toast Notification System
+    // -------------------------------------------------------------
+    function showToast(title, message, type = "info") {
+      const toast = document.getElementById('toastAlert');
+      if (!toast) return;
+
+      let border = "border-indigo-500/40 bg-slate-900/95 text-slate-100";
+      let icon = '<i class="fa-solid fa-circle-info text-indigo-400 text-base"></i>';
+
+      if (type === 'danger') {
+        border = "border-rose-500/50 bg-rose-950/95 text-rose-100";
+        icon = '<i class="fa-solid fa-triangle-exclamation text-rose-400 text-base"></i>';
+      } else if (type === 'success') {
+        border = "border-emerald-500/50 bg-emerald-950/95 text-emerald-100";
+        icon = '<i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>';
+      }
+
+      toast.className = `fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-2xl flex items-center space-x-3 text-xs border ${border} transition transform duration-300`;
+      toast.innerHTML = `
+        ${icon}
+        <div>
+          <div class="font-bold text-sm">${title}</div>
+          <div class="text-xs text-slate-300 mt-0.5">${message}</div>
+        </div>
+      `;
+
+      toast.classList.remove('hidden');
+      setTimeout(() => {
+        toast.classList.add('hidden');
+      }, 4500);
+    }
+
+    // -------------------------------------------------------------
+    // Real-Time SSE Stream & Live Radar Connection
+    // -------------------------------------------------------------
+    function connectSSE() {
+      if (eventSource) eventSource.close();
+      eventSource = new EventSource('/api/stream/events');
+
+      const radarBadge = document.getElementById('sseRadarStatus');
+
+      eventSource.addEventListener('connect', (e) => {
+        if (radarBadge) {
+          radarBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs";
+          radarBadge.innerHTML = `
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+            </span>
+            <span class="font-mono font-semibold tracking-wider">RADAR LIVE</span>
+          `;
+        }
+      });
+
+      eventSource.addEventListener('decision', (e) => {
+        try {
+          const envelope = JSON.parse(e.data);
+          const d = envelope.data;
+          const tbody = document.getElementById('decisionsTableBody');
+
+          // Check filters
+          const respFilter = document.getElementById('filterResponse').value;
+          const userFilter = document.getElementById('filterUser').value.trim();
+          if (respFilter && d.response !== respFilter) return;
+          if (userFilter && d.user.toLowerCase() !== userFilter.toLowerCase()) return;
+
+          // Prepend new row to table
+          const tempDiv = document.createElement('tbody');
+          tempDiv.innerHTML = renderDecisionRow(d, true);
+          const newRow = tempDiv.firstElementChild;
+
+          if (tbody) {
+            if (tbody.children.length === 1 && tbody.children[0].innerText.includes("No decisions")) {
+              tbody.innerHTML = '';
+            }
+            tbody.insertBefore(newRow, tbody.firstChild);
+
+            while (tbody.children.length > 60) {
+              tbody.removeChild(tbody.lastChild);
+            }
+
+            setTimeout(() => {
+              if (newRow) newRow.className = "hover:bg-slate-800/40 transition";
+            }, 2500);
+          }
+
+          // Live Increment Counters
+          const totEl = document.getElementById('metricTotalEvents');
+          if (totEl && totEl.innerText !== '-') {
+            totEl.innerText = parseInt(totEl.innerText || 0) + 1;
+          }
+          if (d.response === 'revoke' || d.response === 'refused_session_revoked') {
+            const revEl = document.getElementById('metricRevocations');
+            if (revEl && revEl.innerText !== '-') revEl.innerText = parseInt(revEl.innerText || 0) + 1;
+            showToast("Critical Attack Intercepted", `Revoked session '${d.session_id}' for user ${d.user}`, "danger");
+          } else if (d.response === 'step_up') {
+            const stpEl = document.getElementById('metricStepUps');
+            if (stpEl && stpEl.innerText !== '-') stpEl.innerText = parseInt(stpEl.innerText || 0) + 1;
+            showToast("Step-Up Challenge Issued", `Triggered MFA challenge for ${d.user}`, "info");
+          }
+        } catch (err) {
+          console.error("SSE parse error", err);
+        }
+      });
+
+      eventSource.onerror = (err) => {
+        if (radarBadge) {
+          radarBadge.className = "flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-amber-950/60 border border-amber-500/30 text-amber-400 text-xs";
+          radarBadge.innerHTML = `<span class="inline-block h-2 w-2 rounded-full bg-amber-400"></span><span class="font-mono font-medium">RECONNECTING</span>`;
+        }
+      };
+    }
+
+    // Auto Initializer
+    window.addEventListener('DOMContentLoaded', () => {
+      loadMetrics();
+      loadDecisionsFeed();
+      connectSSE();
+      setInterval(loadMetrics, 12000);
+    });
+  </script>
+
+</body>
+</html>

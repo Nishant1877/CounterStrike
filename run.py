@@ -16,11 +16,23 @@ if __name__ == "__main__":
     # 1. Seed demo database with rich personas
     seed_demo_database()
     
-    print("\n[+] Launching server on http://127.0.0.1:8000")
-    print("    - Analyst SOC Command Center:   http://127.0.0.1:8000/")
-    print("    - React 18 World Threat Map UI: http://127.0.0.1:8000/react_app.html")
-    print("    - Protected Target Banking App: http://127.0.0.1:8000/bank_app.html")
-    print("    - Interactive API Docs:         http://127.0.0.1:8000/docs")
+    import os
+    import socket
+
+    def is_port_in_use(port: int) -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(('127.0.0.1', port)) == 0
+
+    default_port = int(os.environ.get("PORT", "8000"))
+    if is_port_in_use(default_port) and "PORT" not in os.environ:
+        default_port = 8080
+
+    print(f"\n[+] Launching server on http://127.0.0.1:{default_port}")
+    print(f"    - Analyst SOC Command Center:   http://127.0.0.1:{default_port}/")
+    print(f"    - React 18 World Threat Map UI: http://127.0.0.1:{default_port}/react_app.html")
+    print(f"    - Protected Target Banking App: http://127.0.0.1:{default_port}/bank_app.html")
+    print(f"    - Interactive API Docs:         http://127.0.0.1:{default_port}/docs")
     print("==================================================================\n")
     
-    uvicorn.run("api.main:app", host="127.0.0.1", port=8000, reload=False)
+    uvicorn.run("api.main:app", host="127.0.0.1", port=default_port, reload=False)
+
