@@ -75,9 +75,13 @@ def evaluate_condition_node(
 
     # Challenge result condition (e.g. for Rule R-10)
     if "challenge_result" in node:
-        expected_status = node["challenge_result"]
-        actual_status = ctx.get("challenge_result")
-        is_match = (actual_status == expected_status)
+        expected_status = str(node["challenge_result"]).lower()
+        actual_status = str(ctx.get("challenge_result", "")).lower()
+
+        if expected_status == "failed_or_expired":
+            is_match = actual_status in {"failed", "fail", "expired", "expire", "failed_or_expired"}
+        else:
+            is_match = (actual_status == expected_status)
         return is_match == node.get("is", True)
 
     return False

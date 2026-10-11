@@ -149,9 +149,10 @@ rules:
         - signal: unfamiliar_device
           is: triggered
         - signal: sensitive_after_unfamiliar_login
-          is: triggered
+          is: not_triggered
     requires_evidence: none
     response: analyst_review
+    also_open_review: true
 
   - id: R-10
     name: "Step-up challenge failed or expired"
@@ -168,13 +169,17 @@ rules:
     description: "Data quality caveats present but no risk signals triggered."
     when:
       all:
-        - signal: unfamiliar_device
-          is: not_triggered
-        - signal: implausible_location_change
-          is: not_triggered
-        - signal: unusual_hour
-          is: not_triggered
-        - signal: sensitive_after_unfamiliar_login
-          is: not_triggered
+        - not:
+            signal: unfamiliar_device
+            is: triggered
+        - not:
+            signal: implausible_location_change
+            is: triggered
+        - not:
+            signal: unusual_hour
+            is: triggered
+        - not:
+            signal: sensitive_after_unfamiliar_login
+            is: triggered
     requires_evidence: none
     response: no_action

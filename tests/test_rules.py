@@ -131,3 +131,53 @@ def test_explanation_generator(rule_engine):
     assert "Session revoked by rule R-06." in decision_summary
     assert "Pune to London is 7,200 km" in decision_summary
     assert "212 earlier events" in decision_summary
+
+
+def test_r09_advisory_supported_fires_analyst_review(rule_engine):
+    # R-09: Sequence anomaly + unfamiliar device + sensitive action -> analyst_review
+    signals = {
+        "unfamiliar_device": make_dummy_signal("unfamiliar_device", "Device", SignalStatus.TRIGGERED),
+        "sensitive_after_unfamiliar_login": make_dummy_signal("sensitive_after_unfamiliar_login", "Sensitive", SignalStatus.NOT_TRIGGERED),
+        "implausible_location_change": make_dummy_signal("implausible_location_change", "Speed", SignalStatus.NOT_TRIGGERED),
+        "unusual_hour": make_dummy_signal("unusual_hour", "Hour", SignalStatus.NOT_TRIGGERED)
+    }
+    advisory = AdvisoryResult(
+        advisory=True,
+        label="suspicious",
+        score=0.91,
+        top_transitions=[],
+        reason="Rare sequence",
+        evidence="10 sessions"
+    )
+    res = rule_engine.evaluate(signals, evidence_level=EvidenceLevel.SUFFICIENT, advisory=advisory, extra_context={"action": "change_email"})
+    assert "R-09" in res.rules_fired
+    assert res.deciding_rule_id == "R-09"
+    assert res.final_response == ResponseAction.ANALYST_REVIEW
+
+
+def test_r10_challenge_result_failed_and_expired(rule_engine):
+    # R-10: Step-up challenge failed -> revoke
+    signals = {}
+    res_fail = rule_engine.evaluate(signals, evidence_level=EvidenceLevel.NONE, extra_context={"challenge_result": "failed"})
+    assert "R-10" in res_fail.rules_fired
+    assert res_fail.final_response == ResponseAction.REVOKE
+
+    # R-10: Step-up challenge expired -> revoke
+    res_exp = rule_engine.evaluate(signals, evidence_level=EvidenceLevel.NONE, extra_context={"challenge_result": "expire"})
+    assert "R-10" in res_exp.rules_fired
+    assert res_exp.final_response == ResponseAction.REVOKE
+
+
+def test_r11_caveats_present_no_action(rule_engine):
+    # R-11: Location is unresolvable / NOT_EVALUABLE (caveat), no risk signals triggered -> NO_ACTION
+    signals = {
+        "unfamiliar_device": make_dummy_signal("unfamiliar_device", "Device", SignalStatus.NOT_TRIGGERED),
+        "implausible_location_change": make_dummy_signal("implausible_location_change", "Speed", SignalStatus.NOT_EVALUABLE, "Unknown city"),
+        "unusual_hour": make_dummy_signal("unusual_hour", "Hour", SignalStatus.NOT_TRIGGERED),
+        "sensitive_after_unfamiliar_login": make_dummy_signal("sensitive_after_unfamiliar_login", "Sensitive", SignalStatus.NOT_TRIGGERED)
+    }
+    res = rule_engine.evaluate(signals, evidence_level=EvidenceLevel.LIMITED, extra_context={"action": "view_balance"})
+    assert "R-11" in res.rules_fired
+    assert res.deciding_rule_id == "R-11"
+    assert res.final_response == ResponseAction.NO_ACTION
+
