@@ -49,6 +49,15 @@ def health_check():
     return {"status": "healthy", "service": "IdentityGuard A-03"}
 
 
+# Mount static frontend files (Analyst SOC & Protected Bank App)
+import os
+from fastapi.staticfiles import StaticFiles
+
+static_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "dashboard", "static")
+if os.path.exists(static_dir):
+    app.mount("/", StaticFiles(directory=static_dir, html=True), name="static")
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("api.main:app", host="0.0.0.0", port=8000, reload=True)

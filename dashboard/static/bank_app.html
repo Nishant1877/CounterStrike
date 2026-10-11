@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Global Bank | Retail Banking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+  <!-- Navigation -->
+  <header class="bg-indigo-900 text-white shadow-md">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-shield-halved text-2xl text-emerald-400"></i>
+        <div>
+          <span class="text-xl font-bold tracking-tight">Apex Global Bank</span>
+          <span class="text-xs ml-2 px-2 py-0.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full">Protected by IdentityGuard (A-03)</span>
+        </div>
+      </div>
+      <div id="userHeader" class="text-sm flex items-center space-x-3">
+        <span class="text-indigo-200">Session ID: <code id="activeSessionBadge" class="bg-indigo-950 px-2 py-1 rounded text-emerald-400 font-mono">none</code></span>
+        <button onclick="switchUserPrompt()" class="bg-indigo-800 hover:bg-indigo-700 px-3 py-1.5 rounded text-xs transition">Change User</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Left Column: User Context & Simulation Controls -->
+    <div class="space-y-6">
+      
+      <!-- Account Info Card -->
+      <div class="glass p-5 rounded-xl border border-slate-200 shadow-sm">
+        <h2 class="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-3">Target Profile</h2>
+        <div class="flex items-center space-x-3 mb-4">
+          <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-lg" id="avatarLetter">A</div>
+          <div>
+            <div class="font-bold text-slate-900" id="currentUserName">Asha Sharma</div>
+            <div class="text-xs text-slate-500" id="currentUserRole">Software Engineer • Standard IST 09-18</div>
+          </div>
+        </div>
+        <div class="text-xs space-y-1 text-slate-600 border-t pt-3">
+          <div class="flex justify-between"><span>Checking Account:</span> <span class="font-mono font-medium">**** 8492</span></div>
+          <div class="flex justify-between"><span>Available Balance:</span> <span class="font-mono font-bold text-emerald-600">\$24,850.00</span></div>
+          <div class="flex justify-between"><span>Home Base:</span> <span class="font-medium">Pune, India (IST)</span></div>
+        </div>
+      </div>
+
+      <!-- Simulation Hardware Injector -->
+      <div class="glass p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="text-xs uppercase tracking-wider font-semibold text-slate-500 flex items-center justify-between">
+          <span>5-Field Egress Injector</span>
+          <span class="text-[10px] text-indigo-600 font-mono">R1 Strict</span>
+        </h2>
+        
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Device ID</label>
+          <select id="selDevice" class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500 font-mono">
+            <option value="dev-asha-macbook">dev-asha-macbook (Known / Verified)</option>
+            <option value="dev-asha-pixel">dev-asha-pixel (Known Mobile)</option>
+            <option value="dev-hacker-kali">dev-hacker-kali (Unfamiliar Device S1)</option>
+            <option value="dev-unknown-stepup">dev-unknown-stepup (New Device)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Location Label</label>
+          <select id="selLocation" class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500">
+            <option value="Pune">Pune, India</option>
+            <option value="Mumbai">Mumbai, India</option>
+            <option value="London">London, UK (S2 Implausible Speed)</option>
+            <option value="New York">New York, USA (S2 Implausible Speed)</option>
+            <option value="UNKNOWN_GEO">Unknown Geo-label (Edge Case)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-slate-700 mb-1">Simulated Timestamp (Local / UTC)</label>
+          <select id="selHourOffset" class="w-full text-xs p-2 bg-slate-50 border border-slate-300 rounded focus:ring-1 focus:ring-indigo-500">
+            <option value="now">Current Live Time</option>
+            <option value="03:15">03:15 AM IST (S3 Unusual Hour - Deep Night)</option>
+            <option value="11:30">11:30 AM IST (Normal Working Hours)</option>
+          </select>
+        </div>
+
+        <button onclick="performAction('login')" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-semibold shadow-sm transition">
+          <i class="fa-solid fa-right-to-bracket mr-1"></i> Send 'login' Event
+        </button>
+
+      </div>
+
+    </div>
+
+    <!-- Right 2 Columns: Protected Banking Operations & Security Gate Status -->
+    <div class="md:col-span-2 space-y-6">
+
+      <!-- Gate Status Banner -->
+      <div id="gateStatusBanner" class="p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 flex items-start space-x-3 transition">
+        <i id="gateIcon" class="fa-solid fa-circle-check text-xl text-emerald-600 mt-0.5"></i>
+        <div class="flex-1">
+          <div class="font-bold text-sm" id="gateTitle">Session Active & Enforced</div>
+          <div class="text-xs text-emerald-700 mt-0.5" id="gateMessage">All requests pass through the IdentityGuard Session Gate (R11).</div>
+        </div>
+      </div>
+
+      <!-- Protected Banking Actions -->
+      <div class="glass p-6 rounded-xl border border-slate-200 shadow-sm">
+        <h2 class="text-base font-bold text-slate-900 mb-4 flex items-center justify-between">
+          <span>Banking Actions Catalog</span>
+          <span class="text-xs font-normal text-slate-500">Every button triggers an evaluated event</span>
+        </h2>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          <!-- View Balance -->
+          <div class="p-4 border rounded-lg hover:border-indigo-300 bg-white transition space-y-2">
+            <div class="flex items-center space-x-2 text-indigo-700">
+              <i class="fa-solid fa-wallet"></i>
+              <span class="text-sm font-semibold">View Balance</span>
+            </div>
+            <p class="text-xs text-slate-500">Benign inquiry action with zero financial impact.</p>
+            <button onclick="performAction('view_balance')" class="w-full py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-medium rounded transition">
+              Execute Inquire
+            </button>
+          </div>
+
+          <!-- Transfer Money -->
+          <div class="p-4 border rounded-lg hover:border-indigo-300 bg-white transition space-y-2">
+            <div class="flex items-center space-x-2 text-indigo-700">
+              <i class="fa-solid fa-money-bill-transfer"></i>
+              <span class="text-sm font-semibold">Request Transfer</span>
+            </div>
+            <p class="text-xs text-slate-500">High-risk sensitive transaction action.</p>
+            <button onclick="performAction('request_transfer')" class="w-full py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-medium rounded transition">
+              Execute Transfer (\$500)
+            </button>
+          </div>
+
+          <!-- Change Email -->
+          <div class="p-4 border rounded-lg hover:border-indigo-300 bg-white transition space-y-2">
+            <div class="flex items-center space-x-2 text-rose-600">
+              <i class="fa-solid fa-envelope"></i>
+              <span class="text-sm font-semibold">Change Email</span>
+            </div>
+            <p class="text-xs text-slate-500">Critical security credential modification (S4 sensitive).</p>
+            <button onclick="performAction('change_email')" class="w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium rounded transition">
+              Update to attacker@mail.com
+            </button>
+          </div>
+
+          <!-- Add Payee -->
+          <div class="p-4 border rounded-lg hover:border-indigo-300 bg-white transition space-y-2">
+            <div class="flex items-center space-x-2 text-rose-600">
+              <i class="fa-solid fa-user-plus"></i>
+              <span class="text-sm font-semibold">Add Payee</span>
+            </div>
+            <p class="text-xs text-slate-500">New beneficiary setup before fund exfiltration.</p>
+            <button onclick="performAction('add_payee')" class="w-full py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-medium rounded transition">
+              Add Offshore Beneficiary
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Real-time Event Execution Log -->
+      <div class="glass p-5 rounded-xl border border-slate-200 shadow-sm">
+        <h2 class="text-xs uppercase tracking-wider font-semibold text-slate-500 mb-3 flex items-center justify-between">
+          <span>Engine Response Feed</span>
+          <button onclick="clearLogs()" class="text-[11px] text-slate-400 hover:text-slate-600">Clear</button>
+        </h2>
+        <div id="responseLogs" class="space-y-2 text-xs font-mono max-h-60 overflow-y-auto">
+          <div class="text-slate-400 italic">No actions executed yet. Click any button above to test the session gate.</div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    let currentUser = "asha";
+    let activeSessionId = "sess_bank_" + Math.random().toString(36).substring(2, 9);
+    let sessionRevoked = false;
+
+    document.getElementById("activeSessionBadge").innerText = activeSessionId;
+
+    function switchUserPrompt() {
+      const u = prompt("Enter target user (asha, david, elena):", currentUser);
+      if (u) {
+        currentUser = u.trim().toLowerCase();
+        document.getElementById("currentUserName").innerText = currentUser.toUpperCase();
+        document.getElementById("avatarLetter").innerText = currentUser[0].toUpperCase();
+        activeSessionId = "sess_" + currentUser + "_" + Math.random().toString(36).substring(2, 8);
+        document.getElementById("activeSessionBadge").innerText = activeSessionId;
+        resetGateState();
+      }
+    }
+
+    function resetGateState() {
+      sessionRevoked = false;
+      const banner = document.getElementById("gateStatusBanner");
+      banner.className = "p-4 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-800 flex items-start space-x-3 transition";
+      document.getElementById("gateIcon").className = "fa-solid fa-circle-check text-xl text-emerald-600 mt-0.5";
+      document.getElementById("gateTitle").innerText = "Session Active & Enforced";
+      document.getElementById("gateMessage").innerText = "All requests pass through the IdentityGuard Session Gate (R11).";
+    }
+
+    function setRevokedUI(reason) {
+      sessionRevoked = true;
+      const banner = document.getElementById("gateStatusBanner");
+      banner.className = "p-4 rounded-xl border border-rose-300 bg-rose-50 text-rose-900 flex items-start space-x-3 transition animate-pulse";
+      document.getElementById("gateIcon").className = "fa-solid fa-ban text-2xl text-rose-600 mt-0.5";
+      document.getElementById("gateTitle").innerText = "HTTP 403: SESSION TERMINALLY REVOKED (R11)";
+      document.getElementById("gateMessage").innerText = reason || "The session was revoked due to account takeover signals. All subsequent requests are hard-refused!";
+    }
+
+    async function performAction(actionName) {
+      const deviceId = document.getElementById("selDevice").value;
+      const locationLabel = document.getElementById("selLocation").value;
+      const hourOffset = document.getElementById("selHourOffset").value;
+
+      let timestamp;
+      if (hourOffset === "03:15") {
+        const d = new Date();
+        d.setUTCHours(21, 45, 0, 0); // 03:15 IST is 21:45 UTC previous day
+        timestamp = d.toISOString();
+      } else if (hourOffset === "11:30") {
+        const d = new Date();
+        d.setUTCHours(6, 0, 0, 0); // 11:30 IST is 06:00 UTC
+        timestamp = d.toISOString();
+      } else {
+        timestamp = new Date().toISOString();
+      }
+
+      const payload = {
+        timestamp: timestamp,
+        user: currentUser,
+        device_id: deviceId,
+        location_label: locationLabel,
+        action: actionName,
+        session_id: activeSessionId
+      };
+
+      try {
+        const res = await fetch("/v1/events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        const logs = document.getElementById("responseLogs");
+
+        if (res.status === 403) {
+          // Terminal revocation gate hit!
+          setRevokedUI(data.detail?.explanation || "Action refused on terminally revoked session");
+          appendLogEntry(logs, "403 REFUSED", "rose", data.detail);
+        } else if (res.status === 200) {
+          if (data.response === "revoke") {
+            setRevokedUI(data.explanation);
+            appendLogEntry(logs, "200 REVOKE", "rose", data);
+          } else if (data.response === "step_up") {
+            appendLogEntry(logs, "200 STEP_UP", "amber", data);
+          } else {
+            appendLogEntry(logs, "200 OK", "emerald", data);
+          }
+        } else {
+          appendLogEntry(logs, res.status + " ERROR", "slate", data);
+        }
+
+      } catch (err) {
+        alert("Error connecting to IdentityGuard backend: " + err.message);
+      }
+    }
+
+    function appendLogEntry(container, badge, color, data) {
+      const colorMap = {
+        rose: "bg-rose-100 text-rose-800 border-rose-300",
+        amber: "bg-amber-100 text-amber-800 border-amber-300",
+        emerald: "bg-emerald-100 text-emerald-800 border-emerald-300",
+        slate: "bg-slate-100 text-slate-800 border-slate-300"
+      };
+
+      const entry = document.createElement("div");
+      entry.className = "p-2.5 rounded border " + (colorMap[color] || colorMap.slate);
+      entry.innerHTML = `
+        <div class="flex justify-between items-center mb-1">
+          <span class="font-bold">${badge}</span>
+          <span class="text-[10px] text-slate-500">${new Date().toLocaleTimeString()}</span>
+        </div>
+        <div class="text-xs mb-1">${data.explanation || data.detail?.explanation || 'No explanation'}</div>
+        <div class="text-[10px] text-slate-600">Rule: <b>${data.deciding_rule || data.detail?.deciding_rule || 'N/A'}</b> | Evidence: <b>${data.evidence?.level || data.detail?.evidence?.level || 'N/A'}</b></div>
+      `;
+      if (container.children[0]?.classList.contains("italic")) {
+        container.innerHTML = "";
+      }
+      container.prepend(entry);
+    }
+
+    function clearLogs() {
+      document.getElementById("responseLogs").innerHTML = '<div class="text-slate-400 italic">Logs cleared.</div>';
+    }
+  </script>
+
+</body>
+</html>
