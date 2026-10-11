@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IdentityGuard | Command Center & SOC Analyst Studio</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .badge-revoke { background-color: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .badge-stepup { background-color: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-review { background-color: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .badge-noaction { background-color: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-refused { background-color: rgba(225, 29, 72, 0.3); color: #fda4af; border: 1px solid rgba(225, 29, 72, 0.6); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
+      <div class="flex items-center space-x-3">
+        <div class="w-9 h-9 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-shield-halved text-lg"></i>
+        </div>
+        <div>
+          <span class="text-lg font-bold tracking-tight text-white">IdentityGuard</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 ml-2 font-mono">v2.0 (A-03)</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="flex space-x-1 text-xs font-medium">
+        <button onclick="switchTab('feed')" id="tab-feed" class="px-3 py-1.5 rounded-md bg-indigo-600 text-white transition">Decisions Feed</button>
+        <button onclick="switchTab('profile')" id="tab-profile" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition">User Profiles</button>
+        <button onclick="switchTab('replay')" id="tab-replay" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition">Replay Sandbox (R10)</button>
+        <button onclick="switchTab('audit')" id="tab-audit" class="px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition">Audit Ledger (R8)</button>
+      </nav>
+
+      <!-- Target App Link & Demo Launcher -->
+      <div class="flex items-center space-x-3 text-xs">
+        <div id="sseRadarStatus" class="flex items-center space-x-1.5 px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-[11px] text-emerald-400">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span class="font-mono font-medium">LIVE RADAR</span>
+        </div>
+        <a href="/react_app.html" target="_blank" class="px-3 py-1.5 rounded-md bg-cyan-600/20 text-cyan-400 border border-cyan-500/30 hover:bg-cyan-600/30 transition flex items-center space-x-1">
+          <i class="fa-brands fa-react text-cyan-400"></i>
+          <span>React Threat Map UI</span>
+        </a>
+        <a href="/bank_app.html" target="_blank" class="px-3 py-1.5 rounded-md bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-600/30 transition flex items-center space-x-1">
+          <i class="fa-solid fa-building-columns"></i>
+          <span>Launch Target App</span>
+        </a>
+        <button onclick="triggerQuickSeed()" class="px-3 py-1.5 rounded-md bg-slate-800 text-slate-300 hover:text-white transition">
+          <i class="fa-solid fa-rotate mr-1"></i> Re-Seed Data
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Metric Quick Ribbon -->
+  <div class="bg-slate-900/40 border-b border-slate-800/80 px-4 py-2.5">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-5 gap-4 text-xs">
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400">Total Events:</span>
+        <span id="metricTotalEvents" class="font-bold text-white font-mono">-</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400">Revocations:</span>
+        <span id="metricRevocations" class="font-bold text-rose-400 font-mono">-</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400">Step-Up 2FA:</span>
+        <span id="metricStepUps" class="font-bold text-amber-400 font-mono">-</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400">Late Events:</span>
+        <span id="metricLate" class="font-bold text-slate-300 font-mono">-</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <span class="text-slate-400">Audit Ledger:</span>
+        <span id="metricAuditStatus" class="font-bold text-emerald-400 flex items-center space-x-1">
+          <i class="fa-solid fa-link text-[10px]"></i> <span>Verified</span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main View Area -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+
+    <!-- 1. DECISIONS FEED TAB -->
+    <div id="view-feed" class="space-y-6">
+      
+      <!-- Filter and Refresh Controls -->
+      <div class="flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-400">Filter Response:</span>
+          <select id="filterResponse" onchange="loadDecisionsFeed()" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-slate-200">
+            <option value="">All Actions</option>
+            <option value="revoke">Revoke</option>
+            <option value="step_up">Step Up</option>
+            <option value="refused_session_revoked">Refused (R11)</option>
+            <option value="no_action">No Action</option>
+          </select>
+          <span class="text-slate-400 ml-2">User:</span>
+          <input type="text" id="filterUser" placeholder="e.g. asha" onkeyup="if(event.key==='Enter')loadDecisionsFeed()" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-slate-200 w-28">
+          <button onclick="loadDecisionsFeed()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded">Apply</button>
+        </div>
+        <div class="text-xs text-slate-400">
+          Showing latest decisions • Live synchronous evaluation
+        </div>
+      </div>
+
+      <!-- Feed Table -->
+      <div class="glass-card rounded-xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-900/90 text-slate-400 uppercase tracking-wider text-[10px] border-b border-slate-800">
+              <tr>
+                <th class="py-3 px-4">Timestamp / ID</th>
+                <th class="py-3 px-4">User & Session</th>
+                <th class="py-3 px-4">Decision & Rule</th>
+                <th class="py-3 px-4">Evidence Level</th>
+                <th class="py-3 px-4">Plain English Explanation</th>
+                <th class="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="decisionsTableBody" class="divide-y divide-slate-800/60 font-mono text-slate-300">
+              <tr>
+                <td colspan="6" class="py-8 text-center text-slate-500">Loading decision feed...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 2. USER PROFILE INSPECTOR TAB -->
+    <div id="view-profile" class="hidden space-y-6">
+      
+      <!-- User Selection -->
+      <div class="flex items-center space-x-3 text-xs">
+        <span class="text-slate-400">Select Persona:</span>
+        <button onclick="loadProfile('asha')" class="px-3 py-1 bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 rounded hover:bg-indigo-600/50">Asha (9-5 Office)</button>
+        <button onclick="loadProfile('david')" class="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">David (Frequent Flyer)</button>
+        <button onclick="loadProfile('elena')" class="px-3 py-1 bg-slate-800 text-slate-300 rounded hover:bg-slate-700">Elena (Sparse History)</button>
+      </div>
+
+      <!-- Profile Header Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="glass-card p-4 rounded-xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">User Identifier</div>
+          <div id="profUserId" class="text-lg font-bold text-white mt-1 font-mono">-</div>
+          <div id="profEvidence" class="text-xs text-indigo-400 mt-1">Evidence: -</div>
+        </div>
+        <div class="glass-card p-4 rounded-xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">History Volume</div>
+          <div id="profEventsCount" class="text-lg font-bold text-white mt-1 font-mono">-</div>
+          <div id="profDaysCount" class="text-xs text-slate-400 mt-1">- active days recorded</div>
+        </div>
+        <div class="glass-card p-4 rounded-xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Home Base & TZ</div>
+          <div id="profHomeLoc" class="text-lg font-bold text-white mt-1">-</div>
+          <div id="profHomeTz" class="text-xs text-slate-400 mt-1">-</div>
+        </div>
+        <div class="glass-card p-4 rounded-xl">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Trusted Devices</div>
+          <div id="profDevicesCount" class="text-lg font-bold text-white mt-1 font-mono">-</div>
+          <div class="text-xs text-emerald-400 mt-1">Progression: 3 logins needed</div>
+        </div>
+      </div>
+
+      <!-- Charts & Devices Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- 24-Hour Diurnal Smooth Curve -->
+        <div class="glass-card p-5 rounded-xl">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex justify-between">
+            <span>24-Hour Diurnal Smoothed Distribution (S3)</span>
+            <span class="text-indigo-400 font-mono">P(h) Smooth</span>
+          </h3>
+          <div class="h-64">
+            <canvas id="diurnalChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Devices Progression List -->
+        <div class="glass-card p-5 rounded-xl space-y-3">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
+            Known Device Trust Registry (S1)
+          </h3>
+          <div id="devicesList" class="space-y-2 text-xs font-mono max-h-64 overflow-y-auto">
+            <div class="text-slate-500">No devices loaded.</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 3. REPLAY SANDBOX TAB (R10) -->
+    <div id="view-replay" class="hidden space-y-6">
+      
+      <div class="glass-card p-6 rounded-xl border border-indigo-500/20">
+        <h2 class="text-base font-bold text-white mb-2 flex items-center space-x-2">
+          <i class="fa-solid fa-flask-vial text-indigo-400"></i>
+          <span>Sandboxed Replay & Candidate Policy Workbench (R10)</span>
+        </h2>
+        <p class="text-xs text-slate-400 mb-4">
+          Execute historical event sequences in an isolated in-memory sandbox. Compare candidate rule alterations against production baselines and verify bit-exact SHA-256 decision determinism.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <button onclick="runScenarioReplay('asha')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded text-xs font-semibold shadow">
+            Replay Asha Takeover Slice
+          </button>
+          <button onclick="runScenarioReplay('david')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded text-xs font-semibold">
+            Replay David Travel Slice
+          </button>
+          <span class="text-xs text-slate-500">Sandbox Isolation: Production database is 100% untouched.</span>
+        </div>
+      </div>
+
+      <!-- Replay Results Diff Output -->
+      <div id="replayResultContainer" class="hidden glass-card p-6 rounded-xl space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+          <div>
+            <div class="text-sm font-bold text-white font-mono" id="replayRunId">Run ID: -</div>
+            <div class="text-xs text-slate-400 mt-0.5">
+              Deterministic Decision Stream Hash (SHA-256): 
+              <code class="text-indigo-400 font-mono text-[11px]" id="replayStreamHash">-</code>
+            </div>
+          </div>
+          <div class="text-right">
+            <span class="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-1 rounded">R10 Determinism Verified</span>
+          </div>
+        </div>
+
+        <!-- Delta Stats -->
+        <div class="grid grid-cols-4 gap-3 text-xs">
+          <div class="p-3 bg-slate-900 rounded border border-slate-800">
+            <div class="text-slate-400">Events Evaluated:</div>
+            <div class="text-base font-bold text-white font-mono mt-1" id="replayTotalEvents">-</div>
+          </div>
+          <div class="p-3 bg-slate-900 rounded border border-slate-800">
+            <div class="text-slate-400">Stricter Responses:</div>
+            <div class="text-base font-bold text-rose-400 font-mono mt-1" id="replayStricter">-</div>
+          </div>
+          <div class="p-3 bg-slate-900 rounded border border-slate-800">
+            <div class="text-slate-400">Weaker Responses:</div>
+            <div class="text-base font-bold text-amber-400 font-mono mt-1" id="replayWeaker">-</div>
+          </div>
+          <div class="p-3 bg-slate-900 rounded border border-slate-800">
+            <div class="text-slate-400">Execution Time:</div>
+            <div class="text-base font-bold text-emerald-400 font-mono mt-1" id="replayDuration">-</div>
+          </div>
+        </div>
+
+        <!-- Decision Table -->
+        <div class="overflow-x-auto mt-4">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase">
+              <tr>
+                <th class="py-2 px-3">Event ID</th>
+                <th class="py-2 px-3">Action</th>
+                <th class="py-2 px-3">Response</th>
+                <th class="py-2 px-3">Deciding Rule</th>
+                <th class="py-2 px-3">Explanation</th>
+              </tr>
+            </thead>
+            <tbody id="replayTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. AUDIT LEDGER TAB (R8) -->
+    <div id="view-audit" class="hidden space-y-6">
+      
+      <!-- Hash Chain Banner -->
+      <div class="glass-card p-5 rounded-xl border border-emerald-500/30 flex justify-between items-center">
+        <div>
+          <div class="text-sm font-bold text-white flex items-center space-x-2">
+            <i class="fa-solid fa-link text-emerald-400"></i>
+            <span>Cryptographic SHA-256 Audit Chain Status</span>
+          </div>
+          <div class="text-xs text-slate-400 mt-1" id="auditChainDescription">
+            Every administrative revocation and state modification is chained to its predecessor's SHA-256 hash.
+          </div>
+        </div>
+        <div class="text-right">
+          <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 rounded-full text-xs font-bold font-mono">
+            CHAIN INTEGRITY: VALID
+          </span>
+        </div>
+      </div>
+
+      <!-- Audit Records Table -->
+      <div class="glass-card rounded-xl overflow-hidden shadow-xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-900 text-slate-400 text-[10px] uppercase">
+              <tr>
+                <th class="py-3 px-4"># ID</th>
+                <th class="py-3 px-4">Actor</th>
+                <th class="py-3 px-4">Action & Target</th>
+                <th class="py-3 px-4">State Transition</th>
+                <th class="py-3 px-4">Previous Hash</th>
+                <th class="py-3 px-4">Row SHA-256 Hash</th>
+              </tr>
+            </thead>
+            <tbody id="auditTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+              <tr>
+                <td colspan="6" class="py-8 text-center text-slate-500">Loading audit ledger...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Modal: Decision Detail Drilldown -->
+  <div id="detailModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-2xl shadow-2xl p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <h3 class="text-base font-bold text-white" id="modalTitle">Decision Breakdown</h3>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <div class="space-y-3 text-xs" id="modalContent">
+        <!-- Injected via JS -->
+      </div>
+      <div class="text-right border-t border-slate-800 pt-3">
+        <button onclick="closeModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded text-xs">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let diurnalChartInstance = null;
+
+    function switchTab(tab) {
+      ['feed', 'profile', 'replay', 'audit'].forEach(t => {
+        document.getElementById('view-' + t).classList.add('hidden');
+        const btn = document.getElementById('tab-' + t);
+        btn.className = "px-3 py-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition";
+      });
+      document.getElementById('view-' + tab).classList.remove('hidden');
+      document.getElementById('tab-' + tab).className = "px-3 py-1.5 rounded-md bg-indigo-600 text-white transition";
+
+      if (tab === 'feed') loadDecisionsFeed();
+      if (tab === 'profile') loadProfile('asha');
+      if (tab === 'audit') loadAuditLedger();
+    }
+
+    async function loadMetrics() {
+      try {
+        const res = await fetch('/api/quality');
+        const data = await res.json();
+        document.getElementById('metricTotalEvents').innerText = data.total_events || 0;
+        document.getElementById('metricLate').innerText = data.late_events || 0;
+
+        const decRes = await fetch('/api/decisions?limit=200');
+        const decs = await decRes.json();
+        const revokes = decs.filter(d => d.response === 'revoke' || d.response === 'refused_session_revoked').length;
+        const stepups = decs.filter(d => d.response === 'step_up').length;
+
+        document.getElementById('metricRevocations').innerText = revokes;
+        document.getElementById('metricStepUps').innerText = stepups;
+      } catch (e) {
+        console.error('Error fetching metrics', e);
+      }
+    }
+
+    async function loadDecisionsFeed() {
+      const respFilter = document.getElementById('filterResponse').value;
+      const userFilter = document.getElementById('filterUser').value.trim();
+
+      let url = '/api/decisions?limit=60';
+      if (respFilter) url += '&response=' + encodeURIComponent(respFilter);
+      if (userFilter) url += '&user=' + encodeURIComponent(userFilter);
+
+      try {
+        const res = await fetch(url);
+        const decisions = await res.json();
+        const tbody = document.getElementById('decisionsTableBody');
+
+        if (!decisions.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500">No decisions matched the filter criteria.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = decisions.map(d => {
+          let badgeClass = "badge-noaction";
+          if (d.response === 'revoke') badgeClass = "badge-revoke";
+          else if (d.response === 'step_up') badgeClass = "badge-stepup";
+          else if (d.response === 'analyst_review') badgeClass = "badge-review";
+          else if (d.response === 'refused_session_revoked') badgeClass = "badge-refused";
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-3 px-4">
+                <div class="text-white font-medium">${d.created_at.substring(11, 19)}</div>
+                <div class="text-[10px] text-slate-500">${d.event_id}</div>
+              </td>
+              <td class="py-3 px-4">
+                <div class="text-indigo-300 font-semibold">${d.user}</div>
+                <div class="text-[10px] text-slate-500 truncate max-w-[120px]">${d.session_id}</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${d.response.toUpperCase()}</span>
+                <div class="text-[10px] text-slate-400 mt-1">${d.deciding_rule || 'N/A'}</div>
+              </td>
+              <td class="py-3 px-4">
+                <span class="text-[11px] text-slate-300 font-bold">${d.evidence_level}</span>
+              </td>
+              <td class="py-3 px-4 font-sans text-xs text-slate-300 max-w-md">
+                ${d.explanation}
+              </td>
+              <td class="py-3 px-4 text-right">
+                <button onclick='showDetail(${JSON.stringify(d).replace(/'/g, "&#39;")})' class="text-indigo-400 hover:text-indigo-300 text-xs">
+                  Inspect &rarr;
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } catch (e) {
+        console.error("Error loading decisions", e);
+      }
+    }
+
+    async function loadProfile(userId) {
+      try {
+        const res = await fetch('/api/users/' + userId + '/profile');
+        const prof = await res.json();
+
+        document.getElementById('profUserId').innerText = prof.user;
+        document.getElementById('profEvidence').innerText = "Evidence: " + prof.evidence_level.toUpperCase();
+        document.getElementById('profEventsCount').innerText = prof.total_events;
+        document.getElementById('profDaysCount').innerText = prof.active_days_count + " active days recorded";
+        document.getElementById('profHomeLoc').innerText = prof.home_location;
+        document.getElementById('profHomeTz').innerText = prof.home_timezone;
+        document.getElementById('profDevicesCount').innerText = prof.devices.length + " devices";
+
+        // Render Diurnal Chart
+        renderDiurnalChart(prof.hour_histogram);
+
+        // Render Devices
+        const devContainer = document.getElementById('devicesList');
+        if (!prof.devices.length) {
+          devContainer.innerHTML = '<div class="text-slate-500">No registered devices.</div>';
+        } else {
+          devContainer.innerHTML = prof.devices.map(d => `
+            <div class="p-2.5 bg-slate-900 rounded border border-slate-800 flex justify-between items-center">
+              <div>
+                <div class="font-bold text-slate-200">${d.device_id}</div>
+                <div class="text-[10px] text-slate-500">Logins: ${d.login_count} • Events: ${d.event_count}</div>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold ${d.state === 'verified' || d.state === 'known' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}">
+                ${d.state.toUpperCase()}
+              </span>
+            </div>
+          `).join('');
+        }
+
+      } catch (e) {
+        console.error("Error loading profile", e);
+      }
+    }
+
+    function renderDiurnalChart(hourHistogram) {
+      const ctx = document.getElementById('diurnalChart').getContext('2d');
+      if (diurnalChartInstance) {
+        diurnalChartInstance.destroy();
+      }
+
+      const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
+
+      diurnalChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Smoothed Probability Share (%)',
+            data: hourHistogram,
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.15)',
+            borderWidth: 2,
+            tension: 0.35,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            x: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } }
+            },
+            y: {
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    async function runScenarioReplay(user) {
+      try {
+        const res = await fetch('/api/replay/slice', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: user })
+        });
+        const data = await res.json();
+
+        document.getElementById('replayResultContainer').classList.remove('hidden');
+        document.getElementById('replayRunId').innerText = "Run ID: " + data.replay_run_id;
+        document.getElementById('replayStreamHash').innerText = data.decision_stream_hash;
+        document.getElementById('replayTotalEvents').innerText = data.total_events;
+        document.getElementById('replayStricter').innerText = data.diff?.stricter_count || 0;
+        document.getElementById('replayWeaker').innerText = data.diff?.weaker_count || 0;
+        document.getElementById('replayDuration').innerText = data.duration_ms + " ms";
+
+        const tbody = document.getElementById('replayTableBody');
+        tbody.innerHTML = data.decisions.map(d => `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-2 px-3 text-slate-400">${d.event_id}</td>
+            <td class="py-2 px-3 text-white">${d.session_id}</td>
+            <td class="py-2 px-3 font-bold text-indigo-400">${d.response.toUpperCase()}</td>
+            <td class="py-2 px-3 text-slate-300">${d.deciding_rule || 'N/A'}</td>
+            <td class="py-2 px-3 font-sans text-xs text-slate-400 max-w-sm truncate">${d.explanation_text}</td>
+          </tr>
+        `).join('');
+
+      } catch (e) {
+        alert("Replay failed: " + e.message);
+      }
+    }
+
+    async function loadAuditLedger() {
+      try {
+        const res = await fetch('/api/audit');
+        const data = await res.json();
+        const tbody = document.getElementById('auditTableBody');
+
+        if (!data.logs.length) {
+          tbody.innerHTML = '<tr><td colspan="6" class="py-8 text-center text-slate-500">No audit log records recorded yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.logs.map(l => `
+          <tr class="hover:bg-slate-800/40">
+            <td class="py-3 px-4 font-bold text-indigo-400">#${l.audit_id}</td>
+            <td class="py-3 px-4 text-slate-200">${l.actor}</td>
+            <td class="py-3 px-4">
+              <span class="text-white font-semibold">${l.action}</span>
+              <div class="text-[10px] text-slate-500">${l.target}</div>
+            </td>
+            <td class="py-3 px-4 font-sans text-xs text-slate-300">
+              <span class="text-slate-500">${l.before_state || 'none'}</span> &rarr; <span class="text-emerald-400 font-bold">${l.after_state || 'none'}</span>
+            </td>
+            <td class="py-3 px-4 text-[10px] text-slate-500 truncate max-w-[100px]">${l.prev_hash}</td>
+            <td class="py-3 px-4 text-[10px] text-indigo-300 truncate max-w-[120px] font-bold">${l.row_hash}</td>
+          </tr>
+        `).join('');
+
+      } catch (e) {
+        console.error("Error loading audit log", e);
+      }
+    }
+
+    function showDetail(dec) {
+      document.getElementById('modalTitle').innerText = `Decision Drilldown: ${dec.decision_id}`;
+      document.getElementById('modalContent').innerHTML = `
+        <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800 font-mono">
+          <div><span class="text-slate-400">User:</span> <b>${dec.user}</b></div>
+          <div><span class="text-slate-400">Response:</span> <b class="text-indigo-400">${dec.response}</b></div>
+          <div><span class="text-slate-400">Deciding Rule:</span> <b>${dec.deciding_rule || 'N/A'}</b></div>
+          <div><span class="text-slate-400">Evidence Level:</span> <b>${dec.evidence_level}</b></div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-slate-400 font-semibold">Plain-English Explanation:</div>
+          <div class="p-3 bg-slate-950 rounded border border-slate-800 font-sans text-slate-200">${dec.explanation}</div>
+        </div>
+        <div class="space-y-1">
+          <div class="text-slate-400 font-semibold">Signals Evaluated:</div>
+          <div class="space-y-1 max-h-36 overflow-y-auto font-mono text-[11px]">
+            ${(dec.signals || []).map(s => `
+              <div class="p-2 bg-slate-950 rounded border border-slate-800 flex justify-between items-center">
+                <span>${s.name} (${s.signal_id})</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${s.status === 'triggered' ? 'bg-rose-500/20 text-rose-400' : 'bg-slate-800 text-slate-400'}">${s.status.toUpperCase()}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Stage C: Gemini 2.5 LLM Forensics Drilldown -->
+        <div class="pt-2 border-t border-slate-800">
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-semibold text-indigo-400 flex items-center space-x-1.5">
+              <i class="fa-solid fa-brain text-xs"></i>
+              <span>AI Threat Forensics & MITRE ATT&CK</span>
+            </span>
+            <button id="btnGenForensics" onclick='requestForensicReport("${dec.decision_id}")' class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-medium flex items-center space-x-1 transition">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Generate Forensic Intel</span>
+            </button>
+          </div>
+          <div id="forensicsReportArea" class="hidden space-y-2 p-3 bg-slate-950 rounded-lg border border-indigo-900/40 text-xs">
+            <!-- Injected via requestForensicReport -->
+          </div>
+        </div>
+      `;
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    async function requestForensicReport(decisionId) {
+      const btn = document.getElementById('btnGenForensics');
+      const area = document.getElementById('forensicsReportArea');
+      if (!btn || !area) return;
+
+      btn.disabled = true;
+      btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Analyzing...`;
+      area.classList.remove('hidden');
+      area.innerHTML = `<div class="text-slate-400 text-center py-4"><i class="fa-solid fa-spinner fa-spin text-indigo-400 mr-2"></i>Synthesizing MITRE ATT&CK telemetry & behavioral hypotheses...</div>`;
+
+      try {
+        const res = await fetch(`/api/decisions/${encodeURIComponent(decisionId)}/forensics`, {
+          method: 'POST'
+        });
+        if (!res.ok) throw new Error("Server returned " + res.status);
+        const report = await res.json();
+
+        let badgeColor = "text-rose-400 bg-rose-500/20 border-rose-500/40";
+        if (report.threat_level === "ELEVATED") badgeColor = "text-amber-400 bg-amber-500/20 border-amber-500/40";
+        if (report.threat_level === "LOW") badgeColor = "text-emerald-400 bg-emerald-500/20 border-emerald-500/40";
+
+        area.innerHTML = `
+          <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+            <div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${report.threat_level} THREAT</span>
+              <span class="text-[10px] text-slate-500 ml-2 font-mono">Model: ${report.model_source}</span>
+            </div>
+            <span class="text-[10px] text-slate-400 font-mono">${report.report_id}</span>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Executive Summary:</div>
+            <div class="text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800">${report.executive_summary}</div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Tactical Adversary Hypothesis:</div>
+            <div class="text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800">${report.attack_hypothesis}</div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">MITRE ATT&CK Framework Mapping:</div>
+            <div class="grid grid-cols-1 gap-1.5">
+              ${(report.mitre_attack || []).map(m => `
+                <div class="p-2 bg-slate-900/90 rounded border border-slate-800 flex flex-col">
+                  <div class="flex justify-between items-center mb-0.5">
+                    <span class="font-mono text-cyan-400 font-bold text-[11px]">${m.technique_id} - ${m.technique_name}</span>
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-semibold">${m.tactic}</span>
+                  </div>
+                  <div class="text-slate-400 text-[10px]">${m.description}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <div class="text-slate-300 font-semibold mb-1">Recommended SOC Remediation:</div>
+            <ul class="list-disc list-inside space-y-0.5 text-slate-300 bg-slate-900/80 p-2 rounded border border-slate-800">
+              ${(report.recommended_soc_actions || []).map(a => `<li>${a}</li>`).join('')}
+            </ul>
+          </div>
+          <div class="text-[10px] text-slate-500 italic pt-1 border-t border-slate-800">
+            ${report.compliance_note}
+          </div>
+        `;
+        btn.innerHTML = `<i class="fa-solid fa-check mr-1"></i> Analysis Ready`;
+      } catch (err) {
+        area.innerHTML = `<div class="text-rose-400 p-2">Failed to generate forensic report: ${err.message}</div>`;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-rotate-right mr-1"></i> Retry`;
+      }
+    }
+
+
+    function closeModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    async function triggerQuickSeed() {
+      if (confirm("Reset and re-seed database with Asha, David, and Elena test personas?")) {
+        // Trigger manual event generation or reload
+        window.location.reload();
+      }
+    }
+
+    // -------------------------------------------------------------
+    // Stage B: Real-Time SSE Stream & Live Radar Connection
+    // -------------------------------------------------------------
+    let eventSource = null;
+
+    function renderDecisionRow(d, isNew = false) {
+      let badgeClass = "badge-noaction";
+      if (d.response === 'revoke') badgeClass = "badge-revoke";
+      else if (d.response === 'step_up') badgeClass = "badge-stepup";
+      else if (d.response === 'analyst_review') badgeClass = "badge-review";
+      else if (d.response === 'refused_session_revoked') badgeClass = "badge-refused";
+
+      const timeStr = d.created_at ? d.created_at.substring(11, 19) : new Date().toLocaleTimeString();
+      const highlightClass = isNew ? "bg-indigo-950/60 border-l-4 border-indigo-500 animate-pulse transition duration-1000" : "hover:bg-slate-800/40 transition";
+
+      return `
+        <tr class="${highlightClass}" id="row-${d.decision_id}">
+          <td class="py-3 px-4">
+            <div class="text-white font-medium">${timeStr}</div>
+            <div class="text-[10px] text-slate-500">${d.event_id || 'evt_live'}</div>
+          </td>
+          <td class="py-3 px-4">
+            <div class="text-indigo-300 font-semibold">${d.user}</div>
+            <div class="text-[10px] text-slate-500 truncate max-w-[120px]">${d.session_id}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badgeClass}">${(d.response || 'NO_ACTION').toUpperCase()}</span>
+            <div class="text-[10px] text-slate-400 mt-1">${d.deciding_rule || 'N/A'}</div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="text-[11px] text-slate-300 font-bold">${d.evidence_level || 'N/A'}</span>
+          </td>
+          <td class="py-3 px-4 font-sans text-xs text-slate-300 max-w-md">
+            ${d.explanation || 'No summary'}
+          </td>
+          <td class="py-3 px-4 text-right">
+            <button onclick='showDetail(${JSON.stringify(d).replace(/'/g, "&#39;")})' class="text-indigo-400 hover:text-indigo-300 text-xs">
+              Inspect &rarr;
+            </button>
+          </td>
+        </tr>
+      `;
+    }
+
+    function connectSSE() {
+      if (eventSource) {
+        eventSource.close();
+      }
+
+      eventSource = new EventSource('/api/stream/events');
+
+      const radarBadge = document.getElementById('sseRadarStatus');
+
+      eventSource.addEventListener('connect', (e) => {
+        if (radarBadge) {
+          radarBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded bg-emerald-950/80 border border-emerald-500/40 text-[11px] text-emerald-400 shadow-sm";
+          radarBadge.innerHTML = `
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span class="font-mono font-medium">LIVE RADAR</span>
+          `;
+        }
+      });
+
+      eventSource.addEventListener('decision', (e) => {
+        try {
+          const envelope = JSON.parse(e.data);
+          const d = envelope.data;
+          const tbody = document.getElementById('decisionsTableBody');
+
+          // Check if filters match
+          const respFilter = document.getElementById('filterResponse').value;
+          const userFilter = document.getElementById('filterUser').value.trim();
+          if (respFilter && d.response !== respFilter) return;
+          if (userFilter && d.user.toLowerCase() !== userFilter.toLowerCase()) return;
+
+          // Prepend new row to table
+          const tempDiv = document.createElement('tbody');
+          tempDiv.innerHTML = renderDecisionRow(d, true);
+          const newRow = tempDiv.firstElementChild;
+
+          if (tbody) {
+            // Remove empty placeholder if any
+            if (tbody.children.length === 1 && tbody.children[0].innerText.includes("No decisions")) {
+              tbody.innerHTML = '';
+            }
+            tbody.insertBefore(newRow, tbody.firstChild);
+
+            // Keep max 60 rows
+            while (tbody.children.length > 60) {
+              tbody.removeChild(tbody.lastChild);
+            }
+
+            // Remove pulsating glow after 2 seconds
+            setTimeout(() => {
+              if (newRow) {
+                newRow.className = "hover:bg-slate-800/40 transition";
+              }
+            }, 2500);
+          }
+
+          // Live increment metrics
+          const totEl = document.getElementById('metricTotalEvents');
+          if (totEl && totEl.innerText !== '-') {
+            totEl.innerText = parseInt(totEl.innerText || 0) + 1;
+          }
+          if (d.response === 'revoke' || d.response === 'refused_session_revoked') {
+            const revEl = document.getElementById('metricRevocations');
+            if (revEl && revEl.innerText !== '-') revEl.innerText = parseInt(revEl.innerText || 0) + 1;
+          } else if (d.response === 'step_up') {
+            const stpEl = document.getElementById('metricStepUps');
+            if (stpEl && stpEl.innerText !== '-') stpEl.innerText = parseInt(stpEl.innerText || 0) + 1;
+          }
+        } catch (err) {
+          console.error("Error processing SSE decision payload", err);
+        }
+      });
+
+      eventSource.onerror = (err) => {
+        if (radarBadge) {
+          radarBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded bg-amber-950/80 border border-amber-500/40 text-[11px] text-amber-400";
+          radarBadge.innerHTML = `<span class="inline-block h-2 w-2 rounded-full bg-amber-400"></span><span class="font-mono font-medium">RECONNECTING</span>`;
+        }
+      };
+    }
+
+    // Auto initialize
+    loadMetrics();
+    loadDecisionsFeed();
+    connectSSE();
+    setInterval(loadMetrics, 10000);
+  </script>
+
+</body>
+</html>

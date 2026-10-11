@@ -342,19 +342,47 @@ def execute_protected_bank_action(
 
 
 @router.get("/users/list")
-def list_active_users():
-    """List distinct user identities active in the system."""
-    return list(compat_engine.user_histories.keys())
+def list_active_users(db: Session = Depends(get_db)):
+    """List distinct user identities active across database and compat engine."""
+    compat_users = set(compat_engine.user_histories.keys())
+    try:
+        from store.models import SessionModel
+        db_users = {row[0] for row in db.query(SessionModel.user).distinct().all()}
+        all_users = sorted(list(compat_users.union(db_users)))
+    except Exception:
+        all_users = sorted(list(compat_users))
+    return all_users
 
 
 @router.get("/sessions")
-def list_active_sessions():
-    """Return all active and revoked sessions across the platform."""
-    sessions = []
+def list_active_sessions(db: Session = Depends(get_db)):
+    """Return all active and revoked sessions across the platform, combining SQLite and in-memory caches."""
+    sessions_map: Dict[str, Dict[str, Any]] = {}
+
+    # 1. Load from DB
+    try:
+        from store.models import SessionModel
+        db_sessions = db.query(SessionModel).order_by(SessionModel.started_at.desc()).all()
+        for s in db_sessions:
+            is_rev = (s.status == "revoked") or (s.session_id in compat_engine.revoked_sessions)
+            sessions_map[s.session_id] = {
+                "session_id": s.session_id,
+                "user": s.user,
+                "device": s.device_id or "unknown",
+                "last_location": "Secured Node",
+                "event_count": 1,
+                "is_revoked": is_rev,
+                "last_action": "session_init",
+                "last_active": s.last_event_at.timestamp() if s.last_event_at else s.started_at.timestamp()
+            }
+    except Exception:
+        pass
+
+    # 2. Overlay live compat engine session records
     for sess_id, evs in compat_engine.session_events.items():
         is_revoked = sess_id in compat_engine.revoked_sessions
         last_ev = evs[-1] if evs else None
-        sessions.append({
+        sessions_map[sess_id] = {
             "session_id": sess_id,
             "user": last_ev.user if last_ev else "unknown",
             "device": last_ev.device_id if last_ev else "unknown",
@@ -363,9 +391,12 @@ def list_active_sessions():
             "is_revoked": is_revoked,
             "last_action": last_ev.action if last_ev else "none",
             "last_active": last_ev.timestamp if last_ev else 0
-        })
+        }
+
+    sessions = list(sessions_map.values())
     sessions.sort(key=lambda x: x["last_active"], reverse=True)
     return sessions
+
 
 
 class RevokeSessionRequest(BaseModel):
