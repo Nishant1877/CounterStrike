@@ -170,10 +170,13 @@ class EventNormalizer:
             raise ValueError("Empty or missing action")
         action = raw.action.strip().lower()
 
-        # 6. Deterministic Event ID generation (SHA-256 hash of 5 raw fields)
-        hasher = hashlib.sha256()
-        hasher.update(f"{event_ts.isoformat()}|{user}|{device_id}|{norm_loc}|{action}".encode("utf-8"))
-        event_id = f"evt_{hasher.hexdigest()[:16]}"
+        # 6. Event ID generation (supplied by sender if present, else deterministic SHA-256 hash)
+        if raw.event_id and raw.event_id.strip():
+            event_id = raw.event_id.strip()
+        else:
+            hasher = hashlib.sha256()
+            hasher.update(f"{event_ts.isoformat()}|{user}|{device_id}|{norm_loc}|{action}".encode("utf-8"))
+            event_id = f"evt_{hasher.hexdigest()[:16]}"
 
         # 7. Incremental Sequence and Arrival Stamp
         self._seq_counter += 1
@@ -184,8 +187,8 @@ class EventNormalizer:
             IngestStatus.ACCEPTED_WITH_WARNINGS if warnings else IngestStatus.ACCEPTED
         )
 
-        # Inferred session_id fallback if not provided
-        assigned_session = session_id or f"sess_{user}_{device_id}"
+        # Inferred session_id fallback if not provided (Section 5.2 & 12.2)
+        assigned_session = raw.session_id or session_id or f"sess_{user}_{device_id}"
 
         return NormalizedEvent(
             event_id=event_id,

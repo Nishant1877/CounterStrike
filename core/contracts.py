@@ -69,6 +69,8 @@ class RawEventInput(BaseModel):
         default=None, description="Location label e.g. city name (empty/missing accepted with warning)"
     )
     action: str = Field(..., description="Action name from action vocabulary")
+    event_id: Optional[str] = Field(default=None, description="Sender-supplied event_id (optional)")
+    session_id: Optional[str] = Field(default=None, description="Sender-supplied session_id (optional)")
 
 
 class NormalizedEvent(BaseModel):

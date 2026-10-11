@@ -107,42 +107,46 @@ class ProfileManager:
         day_str = event.event_ts.strftime("%Y-%m-%d")
         prof.active_days.add(day_str)
 
-        # 1. Device tracking (Section 8.2)
+        # 1. Device tracking (Section 8.2 & 5.1: UNKNOWN_DEVICE is not learned into device profiles)
         dev_id = event.device_id
         is_login = (event.action == "login")
-        if dev_id not in prof.known_devices:
-            if is_first_user_event:
-                # User's very first device is treated as baseline, not unfamiliar (Section 8.2)
-                initial_state = DeviceState.KNOWN
+        if dev_id != "UNKNOWN_DEVICE":
+            if dev_id not in prof.known_devices:
+                if is_first_user_event:
+                    # User's very first device is treated as baseline, not unfamiliar (Section 8.2)
+                    initial_state = DeviceState.KNOWN
+                else:
+                    initial_state = DeviceState.UNFAMILIAR
+
+                prof.known_devices[dev_id] = DeviceRecord(
+                    device_id=dev_id,
+                    first_seen=event.event_ts,
+                    last_seen=event.event_ts,
+                    event_count=1,
+                    login_count=1 if is_login else 0,
+                    state=initial_state
+                )
             else:
-                initial_state = DeviceState.UNFAMILIAR
+                dev_rec = prof.known_devices[dev_id]
+                if event.event_ts >= dev_rec.last_seen:
+                    dev_rec.last_seen = event.event_ts
+                dev_rec.event_count += 1
+                if is_login:
+                    dev_rec.login_count += 1
+                    if (
+                        dev_rec.state == DeviceState.UNFAMILIAR
+                        and dev_rec.login_count >= self.new_device_logins_to_trust
+                    ):
+                        dev_rec.state = DeviceState.KNOWN
 
-            prof.known_devices[dev_id] = DeviceRecord(
-                device_id=dev_id,
-                first_seen=event.event_ts,
-                last_seen=event.event_ts,
-                event_count=1,
-                login_count=1 if is_login else 0,
-                state=initial_state
-            )
-        else:
-            dev_rec = prof.known_devices[dev_id]
-            dev_rec.last_seen = event.event_ts
-            dev_rec.event_count += 1
-            if is_login:
-                dev_rec.login_count += 1
-                if (
-                    dev_rec.state == DeviceState.UNFAMILIAR
-                    and dev_rec.login_count >= self.new_device_logins_to_trust
-                ):
-                    dev_rec.state = DeviceState.KNOWN
-
-        # 2. Location tracking (Section 8.1, 8.3)
+        # 2. Location tracking (Section 8.1, 8.3 & 10.3)
         loc = event.location_label_norm
         if is_resolvable_location and loc != "UNKNOWN":
             prof.location_counts[loc] = prof.location_counts.get(loc, 0) + 1
-            prof.last_known_location = loc
-            prof.last_known_location_ts = event.event_ts
+            # Only update last known location if event is on-time or newer
+            if prof.last_known_location_ts is None or event.event_ts >= prof.last_known_location_ts:
+                prof.last_known_location = loc
+                prof.last_known_location_ts = event.event_ts
             # Recompute home location (most frequent)
             best_loc = max(prof.location_counts, key=prof.location_counts.get)
             prof.home_location = best_loc

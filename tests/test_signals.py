@@ -151,3 +151,106 @@ def test_s4_sensitive_action_post_login(normalizer, location_db):
     ))
     res_routine = detector.evaluate(e_routine, profile, location_db, session_info=session_ctx_unfamiliar)
     assert res_routine.status == SignalStatus.NOT_TRIGGERED
+
+
+def test_edge_case_s1_missing_device(normalizer, location_db):
+    detector = UnfamiliarDeviceDetector()
+    prof_mgr = ProfileManager()
+    profile = prof_mgr.get_or_create("asha")
+
+    # Missing device should evaluate to NOT_EVALUABLE
+    t0 = datetime(2026, 10, 1, 10, 0, 0, tzinfo=timezone.utc)
+    raw = RawEventInput(timestamp=t0.isoformat(), user="asha", device_id=None, location_label="Pune", action="login")
+    e0 = normalizer.normalize(raw)
+    assert e0.device_id == "UNKNOWN_DEVICE"
+
+    res = detector.evaluate(e0, profile, location_db)
+    assert res.status == SignalStatus.NOT_EVALUABLE
+
+    # Verify UNKNOWN_DEVICE is NOT added to profile.known_devices
+    prof_mgr.update_from_event(e0)
+    assert "UNKNOWN_DEVICE" not in profile.known_devices
+
+
+def test_edge_case_s2_zero_elapsed_time(normalizer, location_db):
+    detector = ImplausibleLocationChangeDetector()
+    prof_mgr = ProfileManager()
+    profile = prof_mgr.get_or_create("asha")
+
+    t0 = datetime(2026, 10, 1, 10, 0, 0, tzinfo=timezone.utc)
+    e0 = normalizer.normalize(RawEventInput(timestamp=t0.isoformat(), user="asha", device_id="d1", location_label="Pune", action="login"))
+    prof_mgr.update_from_event(e0)
+
+    # 1. Zero elapsed time to distant city (Pune to London, > 7000 km) -> TRIGGERED
+    e_far = normalizer.normalize(RawEventInput(timestamp=t0.isoformat(), user="asha", device_id="d1", location_label="London", action="login"))
+    res_far = detector.evaluate(e_far, profile, location_db)
+    assert res_far.status == SignalStatus.TRIGGERED
+    assert "Zero elapsed time" in res_far.reason
+
+    # 2. Zero elapsed time to same city -> NOT_TRIGGERED
+    e_same = normalizer.normalize(RawEventInput(timestamp=t0.isoformat(), user="asha", device_id="d1", location_label="Pune", action="login"))
+    res_same = detector.evaluate(e_same, profile, location_db)
+    assert res_same.status == SignalStatus.NOT_TRIGGERED
+
+
+def test_edge_case_s4_action_before_login(normalizer, location_db):
+    detector = SensitiveAfterUnfamiliarLoginDetector()
+    prof_mgr = ProfileManager()
+    profile = prof_mgr.get_or_create("asha")
+
+    login_ts = datetime(2026, 10, 1, 10, 30, 0, tzinfo=timezone.utc)
+    session_ctx = {
+        "login_event_id": "evt_login_1",
+        "login_event_ts": login_ts,
+        "login_device_unfamiliar": True,
+        "step_up_passed": False
+    }
+
+    # Action timestamp is 10:15 (15 minutes BEFORE the login)
+    t_before = login_ts - timedelta(minutes=15)
+    e_before = normalizer.normalize(RawEventInput(
+        timestamp=t_before.isoformat(),
+        user="asha",
+        device_id="dev-unknown",
+        location_label="London",
+        action="change_email"
+    ))
+    res = detector.evaluate(e_before, profile, location_db, session_info=session_ctx)
+    assert res.status == SignalStatus.NOT_EVALUABLE
+    assert "action_without_login anomaly" in res.reason
+
+
+def test_edge_case_profile_late_event_location(normalizer):
+    prof_mgr = ProfileManager()
+    profile = prof_mgr.get_or_create("asha")
+
+    t_now = datetime(2026, 10, 2, 12, 0, 0, tzinfo=timezone.utc)
+    t_past = datetime(2026, 10, 1, 12, 0, 0, tzinfo=timezone.utc)
+
+    # Event 1 happens on Oct 2 in London
+    e1 = normalizer.normalize(RawEventInput(timestamp=t_now.isoformat(), user="asha", device_id="d1", location_label="London", action="login"))
+    prof_mgr.update_from_event(e1)
+    assert profile.last_known_location == "London"
+
+    # Event 2 arrives late, happened on Oct 1 in Pune
+    e2 = normalizer.normalize(RawEventInput(timestamp=t_past.isoformat(), user="asha", device_id="d1", location_label="Pune", action="login"))
+    prof_mgr.update_from_event(e2)
+
+    # Oct 2 London must NOT be overwritten by older Oct 1 Pune!
+    assert profile.last_known_location == "London"
+    assert profile.last_known_location_ts == t_now
+
+
+def test_sender_supplied_event_and_session_id(normalizer):
+    raw = RawEventInput(
+        timestamp="2026-10-11T10:00:00Z",
+        user="asha",
+        device_id="dev-1",
+        location_label="Pune",
+        action="login",
+        event_id="custom_evt_999",
+        session_id="custom_sess_888"
+    )
+    norm = normalizer.normalize(raw)
+    assert norm.event_id == "custom_evt_999"
+    assert norm.session_id == "custom_sess_888"

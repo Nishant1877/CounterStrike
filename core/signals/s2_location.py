@@ -106,16 +106,28 @@ class ImplausibleLocationChangeDetector(BaseSignalDetector):
 
         # Handle zero or negative elapsed time (e.g. tie or out-of-order)
         if elapsed_seconds <= 0:
-            return SignalResult(
-                signal_id=self.signal_id,
-                name=self.name,
-                status=SignalStatus.TRIGGERED,
-                value={"distance_km": round(distance_km, 1), "elapsed_seconds": elapsed_seconds, "speed_kmh": float("inf")},
-                reference=f"{speed_limit} km/h",
-                reason=f"Zero elapsed time between distinct locations ({prev_canon} to {curr_canon}, {distance_km:.0f} km).",
-                evidence=evidence,
-                inputs=[event.event_id]
-            )
+            if distance_km > min_distance:
+                return SignalResult(
+                    signal_id=self.signal_id,
+                    name=self.name,
+                    status=SignalStatus.TRIGGERED,
+                    value={"distance_km": round(distance_km, 1), "elapsed_seconds": elapsed_seconds, "speed_kmh": float("inf")},
+                    reference=f"{speed_limit} km/h",
+                    reason=f"Zero elapsed time between distinct locations ({prev_canon} to {curr_canon}, {distance_km:.0f} km).",
+                    evidence=evidence,
+                    inputs=[event.event_id]
+                )
+            else:
+                return SignalResult(
+                    signal_id=self.signal_id,
+                    name=self.name,
+                    status=SignalStatus.NOT_TRIGGERED,
+                    value={"distance_km": round(distance_km, 1), "elapsed_seconds": elapsed_seconds, "speed_kmh": 0.0},
+                    reference=f"{speed_limit} km/h",
+                    reason=f"Nearby location variation ({distance_km:.0f} km <= {min_distance:.0f} km threshold) with zero elapsed time.",
+                    evidence=evidence,
+                    inputs=[event.event_id]
+                )
 
         elapsed_hours = elapsed_seconds / 3600.0
         implied_speed = distance_km / elapsed_hours

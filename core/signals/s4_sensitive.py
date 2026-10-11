@@ -94,6 +94,18 @@ class SensitiveAfterUnfamiliarLoginDetector(BaseSignalDetector):
 
         # Calculate time between login and sensitive action
         elapsed_seconds = (event.event_ts - login_ts).total_seconds()
+        if elapsed_seconds < 0:
+            return SignalResult(
+                signal_id=self.signal_id,
+                name=self.name,
+                status=SignalStatus.NOT_EVALUABLE,
+                value={"elapsed_seconds": elapsed_seconds},
+                reference=f"Within {window_minutes}m of unfamiliar login",
+                reason="Sensitive action has earlier timestamp than its session login (action_without_login anomaly).",
+                evidence=evidence,
+                inputs=[event.event_id, session_info.get("login_event_id", "")]
+            )
+
         elapsed_minutes = int(elapsed_seconds / 60)
 
         value_dict = {
