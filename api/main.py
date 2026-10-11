@@ -10,6 +10,7 @@ from store.db import default_db
 from api.routes_ingest import router as ingest_router
 from api.routes_sessions import router as sessions_router
 from api.routes_analyst import router as analyst_router
+from api.routes_replay import router as replay_router
 
 
 @asynccontextmanager
@@ -40,6 +41,7 @@ app.add_middleware(
 app.include_router(ingest_router)
 app.include_router(sessions_router)
 app.include_router(analyst_router)
+app.include_router(replay_router)
 
 
 @app.get("/health", tags=["Health"])

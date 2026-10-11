@@ -97,6 +97,18 @@ class RuleEngine:
 
         self.rules = data.get("rules", [])
 
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "RuleEngine":
+        """Instantiate RuleEngine directly from a validated rule dictionary."""
+        validate_rule_set(data)
+        engine = cls()
+        engine.version = data.get("version", "candidate-v1")
+        raw_prec = data.get("precedence", [])
+        if raw_prec:
+            engine.precedence = [ResponseAction(p) for p in raw_prec]
+        engine.rules = data.get("rules", [])
+        return engine
+
     def evaluate(
         self,
         signals: Dict[str, SignalResult],
