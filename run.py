@@ -17,9 +17,10 @@ if __name__ == "__main__":
     seed_demo_database()
     
     print("\n[+] Launching server on http://127.0.0.1:8000")
-    print("    - Analyst SOC Command Center: http://127.0.0.1:8000/")
+    print("    - Analyst SOC Command Center:   http://127.0.0.1:8000/")
+    print("    - React 18 World Threat Map UI: http://127.0.0.1:8000/react_app.html")
     print("    - Protected Target Banking App: http://127.0.0.1:8000/bank_app.html")
-    print("    - Interactive API Docs (Swagger): http://127.0.0.1:8000/docs")
+    print("    - Interactive API Docs:         http://127.0.0.1:8000/docs")
     print("==================================================================\n")
     
     uvicorn.run("api.main:app", host="127.0.0.1", port=8000, reload=False)

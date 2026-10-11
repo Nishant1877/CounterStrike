@@ -11,6 +11,7 @@ from api.routes_ingest import router as ingest_router
 from api.routes_sessions import router as sessions_router
 from api.routes_analyst import router as analyst_router
 from api.routes_replay import router as replay_router
+from api.routes_compat import router as compat_router, compat_engine
 
 
 @asynccontextmanager
@@ -42,11 +43,19 @@ app.include_router(ingest_router)
 app.include_router(sessions_router)
 app.include_router(analyst_router)
 app.include_router(replay_router)
+app.include_router(compat_router)
 
 
 @app.get("/health", tags=["Health"])
+@app.get("/api/health", tags=["Health"])
 def health_check():
-    return {"status": "healthy", "service": "IdentityGuard A-03"}
+    return {
+        "status": "healthy",
+        "service": "IdentityGuard A-03 Engine",
+        "gemini_enabled": False,
+        "active_users": len(compat_engine.user_histories),
+        "revoked_sessions_count": len(compat_engine.revoked_sessions)
+    }
 
 
 # Mount static frontend files (Analyst SOC & Protected Bank App)
