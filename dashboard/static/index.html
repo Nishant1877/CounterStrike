@@ -112,188 +112,218 @@
     ::-webkit-scrollbar-track { background: #0B0F19; }
     ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+    /* Hide scrollbars for smooth tab navigation */
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 selection:bg-indigo-600 selection:text-white">
 
   <!-- ========================================================================= -->
-  <!-- Navigation Header: Clean, Minimal, Polished -->
+  <!-- Navigation Header: Executive Dual-Layer Architecture -->
   <!-- ========================================================================= -->
-  <header class="border-b border-slate-800/80 bg-[#0B0F19]/95 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex justify-between items-center gap-4">
+  <header class="border-b border-slate-800/80 bg-[#0B0F19]/95 backdrop-blur-md sticky top-0 z-50">
+    <!-- Top Application Bar: Brand, Status & Primary Actions -->
+    <div class="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex justify-between items-center gap-3">
       
-      <!-- New Modern Geometric IdentityGuard Brand Logo -->
-      <div class="flex items-center space-x-3 cursor-pointer select-none" onclick="switchTab('feed')">
-        <div class="relative w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-sm shadow-indigo-500/20">
-          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Brand & Engine Status -->
+      <div class="flex items-center space-x-3.5 select-none">
+        <div class="relative w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-sky-500 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 cursor-pointer" onclick="switchTab('feed')">
+          <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
             <path d="M9 12l2 2 4-4"/>
           </svg>
         </div>
         <div>
           <div class="flex items-center space-x-2">
-            <span class="text-sm font-bold tracking-tight text-white font-sans">IdentityGuard</span>
-            <span class="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono font-medium">A-03</span>
+            <span class="text-sm font-bold tracking-tight text-white font-sans cursor-pointer" onclick="switchTab('feed')">IdentityGuard</span>
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30 font-mono font-semibold">SOAR v3.0</span>
           </div>
-          <p class="text-[10px] text-slate-400 -mt-0.5">Session Risk Intelligence</p>
+          <p class="text-[10px] text-slate-400 -mt-0.5">Continuous Adaptive Trust & Zero-Touch Defense</p>
+        </div>
+
+        <!-- Dynamic Zero-Touch Operational Badge -->
+        <div id="autonomousSoarStatusBadge" onclick="switchTab('autonomous')" class="hidden xl:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-mono cursor-pointer hover:bg-emerald-500/15 transition" title="Autonomous SOAR Engine Active: 0 Human Hand-Offs">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live inline-block"></span>
+          <span>100% ZERO-MANPOWER SOAR: <b class="text-emerald-300" id="topSoarStateText">AUTO</b></span>
         </div>
       </div>
-
-      <!-- Navigation Taskbar: Streamlined & Clean Pill Tabs -->
-      <nav class="hidden md:flex items-center space-x-1 text-xs font-medium bg-slate-900/80 p-1 rounded-xl border border-slate-800/90 shadow-sm">
-        <button onclick="switchTab('feed')" id="tab-feed" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-satellite-dish text-[11px]"></i>
-          <span>Radar</span>
-        </button>
-        <button onclick="switchTab('threatmap')" id="tab-threatmap" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-map-location-dot text-[11px] text-cyan-400"></i>
-          <span>Threat Map</span>
-        </button>
-        <button onclick="switchTab('autonomous')" id="tab-autonomous" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 relative">
-          <i class="fa-solid fa-robot text-[11px] text-cyan-400"></i>
-          <span>Autonomous SOAR</span>
-          <span class="ml-1 px-1 py-0.2 rounded text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono font-bold">ZERO TOUCH</span>
-        </button>
-        <button onclick="switchTab('sessions')" id="tab-sessions" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-fingerprint text-[11px] text-amber-400"></i>
-          <span>Sessions</span>
-        </button>
-        <button onclick="switchTab('profiles')" id="tab-profiles" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-id-card-clip text-[11px] text-indigo-400"></i>
-          <span>Profiles</span>
-        </button>
-        <button onclick="switchTab('scenarios')" id="tab-scenarios" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-bullseye text-[11px] text-rose-400"></i>
-          <span>Scenarios</span>
-        </button>
-        <button onclick="switchTab('replay')" id="tab-replay" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-vial-circle-check text-[11px] text-purple-400"></i>
-          <span>Sandbox</span>
-        </button>
-        <button onclick="switchTab('audit')" id="tab-audit" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-cube text-[11px] text-emerald-400"></i>
-          <span>Ledger</span>
-        </button>
-        <button onclick="switchTab('reviews')" id="tab-reviews" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
-          <i class="fa-solid fa-list-check text-[11px] text-sky-400"></i>
-          <span>Reviews</span>
-          <span id="badgeOpenReviewsCount" class="hidden ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">0</span>
-        </button>
-      </nav>
 
       <!-- Action Toolbar -->
       <div class="flex items-center space-x-2 text-xs">
         
-        <!-- Live SSE Radar Status Indicator -->
-        <div id="sseRadarStatus" class="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live inline-block"></span>
-          <span>LIVE</span>
-        </div>
+        <!-- Threat Auto-Pulse (High Visibility Red CTA) -->
+        <button onclick="triggerAutonomousDemoPulse()" class="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 text-white font-medium transition shadow-sm shadow-rose-900/30 flex items-center space-x-1.5" title="Simulate Real Attack & Watch Sub-50ms Zero-Manpower Response">
+          <i class="fa-solid fa-bolt text-xs text-rose-200"></i>
+          <span class="font-semibold">Auto-Pulse</span>
+        </button>
 
-        <!-- Autonomous SOAR Zero-Manpower Status Badge -->
-        <div id="autonomousSoarStatusBadge" class="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-xs font-mono cursor-pointer" onclick="switchTab('autonomous')" title="Autonomous SOAR Engine: 100% Zero-Touch Containment">
-          <i class="fa-solid fa-robot text-cyan-400 text-xs"></i>
-          <span class="text-[11px]">SOAR: <b class="text-emerald-400" id="topSoarStateText">AUTO</b></span>
-        </div>
-
-        <!-- Zero-Manpower Auto-Hunter Switch -->
-        <button id="btnSelfDrivingTop" onclick="toggleSelfDriving()" class="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-medium transition shadow-sm flex items-center space-x-1" title="Hands-free Zero-Manpower Threat Hunter Daemon">
+        <!-- Auto-Hunter Daemon Switch -->
+        <button id="btnSelfDrivingTop" onclick="toggleSelfDriving()" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-500/40 text-emerald-300 font-medium transition shadow-sm flex items-center space-x-1.5" title="Toggle Zero-Manpower Self-Driving Threat Hunter">
           <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
-          <span class="hidden lg:inline text-xs" id="topHunterStateText">Hunter: ON</span>
+          <span id="topHunterStateText">Hunter: ON</span>
         </button>
 
-        <!-- Zero-Manpower Attack Auto-Pulse -->
-        <button onclick="triggerAutonomousDemoPulse()" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium transition shadow-sm flex items-center space-x-1.5" title="Simulate Attack & Watch Sub-50ms Zero-Manpower Response">
-          <i class="fa-solid fa-bolt text-xs"></i>
-          <span class="hidden md:inline text-xs font-semibold">Auto-Pulse</span>
-        </button>
-
-        <!-- Quick Event Injector Modal Trigger -->
-        <button onclick="openSimulationModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-sm flex items-center space-x-1.5">
+        <!-- Simulation Ingestion Modal -->
+        <button onclick="openSimulationModal()" class="px-2.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-sm shadow-indigo-900/30 flex items-center space-x-1.5" title="Simulate Single Event or Upload Batch Dataset">
           <i class="fa-solid fa-paper-plane text-xs"></i>
-          <span>Simulate</span>
+          <span class="hidden sm:inline">Simulate</span>
         </button>
 
-        <!-- Target Bank Application Link -->
-        <a href="/bank_app.html" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center space-x-1.5" title="Launch Protected Target Banking App">
+        <!-- Target Bank Application Launcher -->
+        <a href="/bank_app.html" target="_blank" class="px-2.5 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-200 border border-slate-700/80 transition flex items-center space-x-1.5" title="Open Target Banking Application Protected by IdentityGuard">
           <i class="fa-solid fa-landmark text-emerald-400 text-xs"></i>
-          <span class="hidden sm:inline">Bank App</span>
+          <span class="hidden md:inline">Bank App</span>
+          <i class="fa-solid fa-arrow-up-right-from-square text-[9px] text-slate-400"></i>
         </a>
 
-        <!-- PDF Master Dossier Link -->
-        <a href="/IdentityGuard_Master_Technical_Dossier.pdf" target="_blank" download="IdentityGuard_Master_Technical_Dossier.pdf" class="px-2.5 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/50 transition flex items-center space-x-1.5" title="Open or Download Master Technical Dossier PDF">
+        <!-- Master Technical Dossier PDF -->
+        <a href="/IdentityGuard_Master_Technical_Dossier.pdf" target="_blank" download="IdentityGuard_Master_Technical_Dossier.pdf" class="px-2.5 py-1.5 rounded-lg bg-indigo-950/60 hover:bg-indigo-900/80 text-indigo-300 border border-indigo-700/50 transition flex items-center space-x-1.5" title="Download Formal 30+ Page Technical Dossier PDF">
           <i class="fa-solid fa-file-pdf text-rose-400 text-xs"></i>
-          <span class="hidden sm:inline">PDF Dossier</span>
+          <span class="hidden lg:inline">PDF Dossier</span>
         </a>
 
-        <!-- Sliders Policy Modal -->
-        <button onclick="openPolicyModal()" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Adjust Policies & Risk Thresholds">
+        <!-- Policy Sliders Modal -->
+        <button onclick="openPolicyModal()" class="p-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 text-slate-300 border border-slate-700/80 transition" title="Adjust Adaptive Risk & Detection Thresholds">
           <i class="fa-solid fa-gear text-xs"></i>
         </button>
       </div>
 
     </div>
 
-    <!-- Mobile Navigation Sub-bar -->
-    <div class="md:hidden flex overflow-x-auto py-2 px-4 border-t border-slate-800 space-x-1.5 text-xs bg-[#0B0F19]">
-      <button onclick="switchTab('feed')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white shrink-0">Radar</button>
-      <button onclick="switchTab('threatmap')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Map</button>
-      <button onclick="switchTab('autonomous')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-cyan-400 shrink-0">Auto-SOAR</button>
-      <button onclick="switchTab('sessions')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Sessions</button>
-      <button onclick="switchTab('profiles')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Profiles</button>
-      <button onclick="switchTab('scenarios')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Scenarios</button>
-      <button onclick="switchTab('replay')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Sandbox</button>
-      <button onclick="switchTab('audit')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Ledger</button>
-      <button onclick="switchTab('reviews')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Reviews</button>
+    <!-- Secondary Sticky Sub-Navigation Bar: Sleek, High-Density Tabs & Live Indicator -->
+    <div class="border-t border-slate-800/70 bg-[#0F172A]/85 backdrop-blur px-4 sm:px-6 lg:px-8 py-1.5">
+      <div class="max-w-[1560px] mx-auto flex items-center justify-between gap-3">
+        
+        <nav class="flex items-center space-x-1.5 text-xs font-medium overflow-x-auto py-0.5 scrollbar-none w-full sm:w-auto">
+          <button onclick="switchTab('feed')" id="tab-feed" class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium transition flex items-center space-x-1.5 shrink-0 shadow-sm shadow-indigo-500/20">
+            <i class="fa-solid fa-satellite-dish text-[11px]"></i>
+            <span>Radar</span>
+          </button>
+          
+          <button onclick="switchTab('autonomous')" id="tab-autonomous" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0 relative">
+            <i class="fa-solid fa-robot text-[11px] text-cyan-400"></i>
+            <span>Autonomous SOAR</span>
+            <span class="px-1.5 py-0.2 rounded text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono font-bold">0-TOUCH</span>
+          </button>
+          
+          <button onclick="switchTab('threatmap')" id="tab-threatmap" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-map-location-dot text-[11px] text-cyan-400"></i>
+            <span>Threat Map</span>
+          </button>
+          
+          <button onclick="switchTab('sessions')" id="tab-sessions" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-fingerprint text-[11px] text-amber-400"></i>
+            <span>Sessions</span>
+          </button>
+          
+          <button onclick="switchTab('profiles')" id="tab-profiles" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-id-card-clip text-[11px] text-indigo-400"></i>
+            <span>Profiles</span>
+          </button>
+          
+          <button onclick="switchTab('scenarios')" id="tab-scenarios" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-bullseye text-[11px] text-rose-400"></i>
+            <span>Scenarios</span>
+          </button>
+          
+          <button onclick="switchTab('replay')" id="tab-replay" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-vial-circle-check text-[11px] text-purple-400"></i>
+            <span>Sandbox</span>
+          </button>
+          
+          <button onclick="switchTab('audit')" id="tab-audit" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-cube text-[11px] text-emerald-400"></i>
+            <span>Ledger</span>
+          </button>
+          
+          <button onclick="switchTab('reviews')" id="tab-reviews" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0">
+            <i class="fa-solid fa-list-check text-[11px] text-sky-400"></i>
+            <span>Reviews</span>
+            <span id="badgeOpenReviewsCount" class="hidden ml-1 px-1.5 py-0.2 rounded-full text-[9px] bg-rose-500 text-white font-bold">0</span>
+          </button>
+        </nav>
+
+        <!-- Live Stream Pulse on right side of tab bar -->
+        <div id="sseRadarStatus" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-emerald-400 text-xs font-mono shrink-0">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-live inline-block"></span>
+          <span>LIVE SSE</span>
+        </div>
+      </div>
     </div>
   </header>
 
   <!-- ========================================================================= -->
-  <!-- Clean Metrics Ribbon: Simple, Legible, High-Contrast -->
+  <!-- Metrics Ribbon: High-Contrast, Balanced, Polished -->
   <!-- ========================================================================= -->
-  <section class="border-b border-slate-800/60 bg-[#0F172A]/40 px-4 sm:px-6 py-3">
-    <div class="max-w-7xl mx-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 text-xs">
+  <section class="border-b border-slate-800/60 bg-[#0F172A]/40 px-4 sm:px-6 lg:px-8 py-3.5">
+    <div class="max-w-[1560px] mx-auto grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5 text-xs">
       
-      <div class="clean-card p-3">
-        <div class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Total Ingested</div>
-        <div id="metricTotalEvents" class="text-lg font-bold text-white font-mono mt-0.5">-</div>
+      <div class="clean-card p-3.5 bg-gradient-to-br from-slate-900/90 to-slate-950/90 hover:border-indigo-500/40 transition">
+        <div class="flex items-center justify-between text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+          <span>Total Ingested</span>
+          <i class="fa-solid fa-arrow-down-wide-short text-slate-500"></i>
+        </div>
+        <div id="metricTotalEvents" class="text-xl font-bold text-white font-mono mt-1">-</div>
+        <div class="text-[10px] text-slate-500 mt-0.5">Real-time edge events</div>
       </div>
 
-      <div class="clean-card p-3">
-        <div class="text-[10px] text-rose-400 font-medium uppercase tracking-wider">Revocations (R11)</div>
-        <div id="metricRevocations" class="text-lg font-bold text-rose-400 font-mono mt-0.5">-</div>
+      <div class="clean-card p-3.5 bg-gradient-to-br from-rose-950/15 to-slate-950/90 border-rose-500/20 hover:border-rose-500/50 transition">
+        <div class="flex items-center justify-between text-[10px] text-rose-400 font-medium uppercase tracking-wider">
+          <span>Revocations (R11)</span>
+          <i class="fa-solid fa-ban text-rose-400"></i>
+        </div>
+        <div id="metricRevocations" class="text-xl font-bold text-rose-400 font-mono mt-1">-</div>
+        <div class="text-[10px] text-rose-400/70 mt-0.5">Monotonic kill-switch</div>
       </div>
 
-      <div class="clean-card p-3">
-        <div class="text-[10px] text-amber-400 font-medium uppercase tracking-wider">Step-Up 2FA</div>
-        <div id="metricStepUps" class="text-lg font-bold text-amber-400 font-mono mt-0.5">-</div>
+      <div class="clean-card p-3.5 bg-gradient-to-br from-amber-950/15 to-slate-950/90 border-amber-500/20 hover:border-amber-500/50 transition">
+        <div class="flex items-center justify-between text-[10px] text-amber-400 font-medium uppercase tracking-wider">
+          <span>Step-Up 2FA</span>
+          <i class="fa-solid fa-shield-halved text-amber-400"></i>
+        </div>
+        <div id="metricStepUps" class="text-xl font-bold text-amber-400 font-mono mt-1">-</div>
+        <div class="text-[10px] text-amber-400/70 mt-0.5">Adaptive challenges</div>
       </div>
 
-      <div class="clean-card p-3">
-        <div class="text-[10px] text-purple-400 font-medium uppercase tracking-wider">Active Sessions</div>
-        <div id="metricActiveSessions" class="text-lg font-bold text-purple-400 font-mono mt-0.5">-</div>
+      <div class="clean-card p-3.5 bg-gradient-to-br from-purple-950/15 to-slate-950/90 border-purple-500/20 hover:border-purple-500/50 transition">
+        <div class="flex items-center justify-between text-[10px] text-purple-400 font-medium uppercase tracking-wider">
+          <span>Active Sessions</span>
+          <i class="fa-solid fa-fingerprint text-purple-400"></i>
+        </div>
+        <div id="metricActiveSessions" class="text-xl font-bold text-purple-300 font-mono mt-1">-</div>
+        <div class="text-[10px] text-purple-400/70 mt-0.5">Live token inventory</div>
       </div>
 
-      <div class="clean-card p-3">
-        <div class="text-[10px] text-sky-400 font-medium uppercase tracking-wider">Late Events (R6)</div>
-        <div id="metricLate" class="text-lg font-bold text-sky-400 font-mono mt-0.5">-</div>
+      <div class="clean-card p-3.5 bg-gradient-to-br from-sky-950/15 to-slate-950/90 border-sky-500/20 hover:border-sky-500/50 transition">
+        <div class="flex items-center justify-between text-[10px] text-sky-400 font-medium uppercase tracking-wider">
+          <span>Late Events (R6)</span>
+          <i class="fa-solid fa-clock-rotate-left text-sky-400"></i>
+        </div>
+        <div id="metricLate" class="text-xl font-bold text-sky-400 font-mono mt-1">-</div>
+        <div class="text-[10px] text-sky-400/70 mt-0.5">Re-sequenced cache</div>
       </div>
 
-      <div class="clean-card p-3">
-        <div class="text-[10px] text-emerald-400 font-medium uppercase tracking-wider">Audit Ledger</div>
-        <div class="text-sm font-bold text-emerald-400 flex items-center space-x-1.5 mt-1 font-mono">
+      <div class="clean-card p-3.5 bg-gradient-to-br from-emerald-950/15 to-slate-950/90 border-emerald-500/25 hover:border-emerald-500/50 transition">
+        <div class="flex items-center justify-between text-[10px] text-emerald-400 font-medium uppercase tracking-wider">
+          <span>Audit Ledger (R8)</span>
+          <i class="fa-solid fa-cube text-emerald-400"></i>
+        </div>
+        <div class="text-sm font-bold text-emerald-400 flex items-center space-x-1.5 mt-2 font-mono">
           <span>SHA-256 Valid</span>
           <i class="fa-solid fa-circle-check text-xs"></i>
         </div>
+        <div class="text-[10px] text-emerald-400/70 mt-0.5">Cryptographic chain</div>
       </div>
 
     </div>
   </section>
 
   <!-- ========================================================================= -->
-  <!-- Main View Area (Simple, Tabbed Navigation) -->
+  <!-- Main View Area (Expanded Container, Polished Layout) -->
   <!-- ========================================================================= -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 flex-1 w-full space-y-6">
+  <main class="max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full space-y-6">
 
     <!-- ===================================================================== -->
     <!-- TAB 1: LIVE DECISIONS RADAR FEED -->
@@ -716,6 +746,8 @@
           </table>
         </div>
       </div>
+    </div>
+
     <!-- ===================================================================== -->
     <!-- TAB 9: AUTONOMOUS SOAR (ZERO MANPOWER RESPONSE ENGINE) -->
     <!-- ===================================================================== -->
@@ -1023,20 +1055,19 @@
     // -------------------------------------------------------------
     // Tab Navigation
     // -------------------------------------------------------------
-    // -------------------------------------------------------------
     function switchTab(tab) {
       const allTabs = ['feed', 'threatmap', 'autonomous', 'sessions', 'profiles', 'scenarios', 'replay', 'audit', 'reviews'];
       allTabs.forEach(t => {
         const view = document.getElementById('view-' + t);
         if (view) view.classList.add('hidden');
         const btn = document.getElementById('tab-' + t);
-        if (btn) btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5";
+        if (btn) btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 shrink-0";
       });
 
       const targetView = document.getElementById('view-' + tab);
       if (targetView) targetView.classList.remove('hidden');
       const targetBtn = document.getElementById('tab-' + tab);
-      if (targetBtn) targetBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium transition flex items-center space-x-1.5";
+      if (targetBtn) targetBtn.className = "px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-medium shadow-sm shadow-indigo-500/20 transition flex items-center space-x-1.5 shrink-0";
 
       if (tab === 'feed') loadDecisionsFeed();
       if (tab === 'threatmap') setTimeout(initLeafletMap, 100);
