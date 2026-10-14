@@ -32,11 +32,13 @@ from external_compat.scenarios import BASELINE_EVENTS_ALICE, ALL_SCENARIOS
 
 from store.db import default_db
 from store.audit import AuditLedger
+from store.models import SessionModel
 
 from datetime import datetime, timezone
 from core.contracts import RawEventInput
 from api.routes_ingest import get_pipeline
 from core.pipeline import SecurityPipeline
+from core.autonomous_soar import AutonomousSOAR
 
 router = APIRouter(prefix="/api", tags=["External Compatibility"])
 
@@ -319,9 +321,18 @@ def execute_protected_bank_action(
         details={"amount": req.amount, "gateway_protected": True}
     )
 
+    # Autonomous Zero-Touch Quarantine Filter
+    if AutonomousSOAR.is_quarantined(device_id=req.device_id):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Security Gateway Interception: Device '{req.device_id}' has been quarantined by Autonomous SOAR! Transaction blocked."
+        )
+
     eval_result = evaluate_live_event(sec_event, db=db, pipeline=pipeline)
 
-    if eval_result.session_is_revoked:
+    db_sess = db.query(SessionModel).filter(SessionModel.session_id == req.session_id).first()
+    if (db_sess and db_sess.status == "revoked") or eval_result.session_is_revoked or req.session_id in compat_engine.revoked_sessions:
+        compat_engine.revoked_sessions.add(req.session_id)
         raise HTTPException(
             status_code=403,
             detail=f"Security Gateway Interception: Session '{req.session_id}' is revoked. Transaction rejected!"

@@ -12,17 +12,22 @@ from api.routes_sessions import router as sessions_router
 from api.routes_analyst import router as analyst_router
 from api.routes_replay import router as replay_router
 from api.routes_compat import router as compat_router, compat_engine
+from api.routes_autonomous import router as autonomous_router
+from core.autonomous_worker import AutonomousWorker
+from core.autonomous_soar import AutonomousSOAR
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Initialize database tables and seed baseline personas
+    # Startup: Initialize database tables, seed baseline personas, and start autonomous threat hunter
     default_db.init_db()
     from data.seed_demo import seed_demo_database
     from api.routes_ingest import _pipeline
     seed_demo_database(target_pipeline=_pipeline)
+    AutonomousWorker.start()
     yield
     # Shutdown
+    AutonomousWorker.stop()
 
 
 
@@ -48,6 +53,7 @@ app.include_router(sessions_router)
 app.include_router(analyst_router)
 app.include_router(replay_router)
 app.include_router(compat_router)
+app.include_router(autonomous_router)
 
 
 @app.get("/health", tags=["Health"])

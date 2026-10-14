@@ -149,6 +149,11 @@
           <i class="fa-solid fa-map-location-dot text-[11px] text-cyan-400"></i>
           <span>Threat Map</span>
         </button>
+        <button onclick="switchTab('autonomous')" id="tab-autonomous" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5 relative">
+          <i class="fa-solid fa-robot text-[11px] text-cyan-400"></i>
+          <span>Autonomous SOAR</span>
+          <span class="ml-1 px-1 py-0.2 rounded text-[8px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono font-bold">ZERO TOUCH</span>
+        </button>
         <button onclick="switchTab('sessions')" id="tab-sessions" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/70 transition flex items-center space-x-1.5">
           <i class="fa-solid fa-fingerprint text-[11px] text-amber-400"></i>
           <span>Sessions</span>
@@ -185,6 +190,24 @@
           <span>LIVE</span>
         </div>
 
+        <!-- Autonomous SOAR Zero-Manpower Status Badge -->
+        <div id="autonomousSoarStatusBadge" class="hidden sm:flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-indigo-950/60 border border-indigo-500/40 text-indigo-300 text-xs font-mono cursor-pointer" onclick="switchTab('autonomous')" title="Autonomous SOAR Engine: 100% Zero-Touch Containment">
+          <i class="fa-solid fa-robot text-cyan-400 text-xs"></i>
+          <span class="text-[11px]">SOAR: <b class="text-emerald-400" id="topSoarStateText">AUTO</b></span>
+        </div>
+
+        <!-- Zero-Manpower Auto-Hunter Switch -->
+        <button id="btnSelfDrivingTop" onclick="toggleSelfDriving()" class="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-medium transition shadow-sm flex items-center space-x-1" title="Hands-free Zero-Manpower Threat Hunter Daemon">
+          <i class="fa-solid fa-wand-magic-sparkles text-xs"></i>
+          <span class="hidden lg:inline text-xs" id="topHunterStateText">Hunter: ON</span>
+        </button>
+
+        <!-- Zero-Manpower Attack Auto-Pulse -->
+        <button onclick="triggerAutonomousDemoPulse()" class="px-2.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium transition shadow-sm flex items-center space-x-1.5" title="Simulate Attack & Watch Sub-50ms Zero-Manpower Response">
+          <i class="fa-solid fa-bolt text-xs"></i>
+          <span class="hidden md:inline text-xs font-semibold">Auto-Pulse</span>
+        </button>
+
         <!-- Quick Event Injector Modal Trigger -->
         <button onclick="openSimulationModal()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition shadow-sm flex items-center space-x-1.5">
           <i class="fa-solid fa-paper-plane text-xs"></i>
@@ -215,6 +238,7 @@
     <div class="md:hidden flex overflow-x-auto py-2 px-4 border-t border-slate-800 space-x-1.5 text-xs bg-[#0B0F19]">
       <button onclick="switchTab('feed')" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white shrink-0">Radar</button>
       <button onclick="switchTab('threatmap')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Map</button>
+      <button onclick="switchTab('autonomous')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-cyan-400 shrink-0">Auto-SOAR</button>
       <button onclick="switchTab('sessions')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Sessions</button>
       <button onclick="switchTab('profiles')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Profiles</button>
       <button onclick="switchTab('scenarios')" class="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 shrink-0">Scenarios</button>
@@ -692,6 +716,134 @@
           </table>
         </div>
       </div>
+    <!-- ===================================================================== -->
+    <!-- TAB 9: AUTONOMOUS SOAR (ZERO MANPOWER RESPONSE ENGINE) -->
+    <!-- ===================================================================== -->
+    <div id="view-autonomous" class="hidden space-y-4">
+      
+      <!-- Top banner: Zero-Manpower Engine Status & KPIs -->
+      <div class="clean-card p-5 border-indigo-500/30 bg-gradient-to-r from-[#111827] via-indigo-950/20 to-[#111827]">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/40 flex items-center space-x-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-live inline-block"></span>
+                <span>100% AUTONOMOUS</span>
+              </span>
+              <span class="text-[11px] text-indigo-300 font-mono font-semibold">ZERO HUMAN INTERVENTION REQUIRED</span>
+            </div>
+            <h2 class="text-base font-bold text-white mt-1">Autonomous SOAR & Threat Containment Engine</h2>
+            <p class="text-xs text-slate-400 max-w-2xl mt-0.5">
+              Instantly terminates weaponized sessions (R11), blacklists attacker IPs, isolates hardware device footprints, and auto-resolves SOC review backlogs in sub-50ms without human operators.
+            </p>
+          </div>
+
+          <!-- Quick Controls -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="toggleAutonomousEngine()" id="btnToggleAutonomousSOAR" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-power-off text-xs"></i>
+              <span id="lblAutonomousState">SOAR: ACTIVE</span>
+            </button>
+            <button onclick="toggleSelfDriving()" id="btnToggleSelfDriving" class="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition flex items-center space-x-1.5 shadow-sm">
+              <i class="fa-solid fa-robot text-xs"></i>
+              <span id="lblSelfDrivingState">Hunter: ON</span>
+            </button>
+            <button onclick="triggerAutonomousDemoPulse()" class="px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs transition shadow-sm flex items-center space-x-1.5">
+              <i class="fa-solid fa-bolt text-xs"></i>
+              <span>Trigger Threat Pulse</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Autonomous SLA KPIs -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-slate-800 text-xs">
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Automated Containment SLA</div>
+            <div class="text-base font-bold text-emerald-400 font-mono mt-0.5 flex items-center space-x-1">
+              <span>&lt; 50ms</span>
+              <i class="fa-solid fa-gauge-high text-xs text-emerald-500"></i>
+            </div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Zero human hand-off latency</div>
+          </div>
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Human Operators Needed</div>
+            <div class="text-base font-bold text-cyan-400 font-mono mt-0.5">0 (Zero Touch)</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Self-contained orchestration</div>
+          </div>
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Quarantined Hardware Devices</div>
+            <div id="statQuarantinedDevices" class="text-base font-bold text-amber-400 font-mono mt-0.5">0</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Hardware isolated at gateway</div>
+          </div>
+          <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800">
+            <div class="text-[10px] text-slate-400 uppercase tracking-wider">Blacklisted Attacker IPs</div>
+            <div id="statBlacklistedIPs" class="text-base font-bold text-rose-400 font-mono mt-0.5">0</div>
+            <div class="text-[10px] text-slate-500 mt-0.5">Edge gateway drops</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Feed & Quarantine List split -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Live Action Feed (2 cols) -->
+        <div class="clean-card p-4 lg:col-span-2 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-white flex items-center space-x-1.5">
+              <i class="fa-solid fa-satellite-dish text-indigo-400"></i>
+              <span>Live Autonomous SOAR Interception Feed</span>
+            </h3>
+            <span class="text-[10px] text-slate-400 font-mono">Real-time SSE Powered</span>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-800">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-slate-900/80 text-slate-400 text-[10px] uppercase border-b border-slate-800">
+                <tr>
+                  <th class="py-2.5 px-3">Timestamp / Action ID</th>
+                  <th class="py-2.5 px-3">Target & Rule</th>
+                  <th class="py-2.5 px-3">Autonomous Containment</th>
+                  <th class="py-2.5 px-3">Latency</th>
+                  <th class="py-2.5 px-3">MITRE Attribution</th>
+                </tr>
+              </thead>
+              <tbody id="autonomousActionsTableBody" class="divide-y divide-slate-800/60 text-slate-300">
+                <tr>
+                  <td colspan="5" class="py-8 text-center text-slate-500 font-sans">Awaiting autonomous SOAR containment signals...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quarantined Assets & Blacklist (1 col) -->
+        <div class="clean-card p-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-xs font-bold text-white flex items-center space-x-1.5">
+              <i class="fa-solid fa-ban text-rose-400"></i>
+              <span>Quarantine & Blacklist Ledger</span>
+            </h3>
+            <button onclick="refreshAutonomousQuarantine()" class="text-slate-400 hover:text-white text-xs">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+
+          <div class="space-y-3">
+            <div>
+              <div class="text-[10px] uppercase font-bold text-slate-400 mb-1">Quarantined Hardware Devices</div>
+              <div id="quarantineDevicesList" class="space-y-1 max-h-40 overflow-y-auto font-mono text-[11px]">
+                <div class="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-400 italic font-sans text-xs">No devices quarantined yet</div>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800">
+              <div class="text-[10px] uppercase font-bold text-slate-400 mb-1">Blacklisted Attacker IPs</div>
+              <div id="blacklistIPsList" class="space-y-1 max-h-40 overflow-y-auto font-mono text-[11px]">
+                <div class="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-400 italic font-sans text-xs">No IPs blacklisted yet</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -871,8 +1023,9 @@
     // -------------------------------------------------------------
     // Tab Navigation
     // -------------------------------------------------------------
+    // -------------------------------------------------------------
     function switchTab(tab) {
-      const allTabs = ['feed', 'threatmap', 'sessions', 'profiles', 'scenarios', 'replay', 'audit', 'reviews'];
+      const allTabs = ['feed', 'threatmap', 'autonomous', 'sessions', 'profiles', 'scenarios', 'replay', 'audit', 'reviews'];
       allTabs.forEach(t => {
         const view = document.getElementById('view-' + t);
         if (view) view.classList.add('hidden');
@@ -887,11 +1040,224 @@
 
       if (tab === 'feed') loadDecisionsFeed();
       if (tab === 'threatmap') setTimeout(initLeafletMap, 100);
+      if (tab === 'autonomous') {
+        loadAutonomousStatus();
+        loadAutonomousActions();
+        refreshAutonomousQuarantine();
+      }
       if (tab === 'sessions') loadSessionsInventory();
       if (tab === 'profiles') loadProfile('asha');
       if (tab === 'scenarios') loadScenariosList();
       if (tab === 'audit') loadAuditLedger();
       if (tab === 'reviews') loadReviewQueue();
+    }
+
+    // -------------------------------------------------------------
+    // Autonomous SOAR (Zero Manpower) Controller
+    // -------------------------------------------------------------
+    let isAutonomousSoarEnabled = true;
+    let isSelfDrivingActive = true;
+
+    async function loadAutonomousStatus() {
+      try {
+        const res = await fetch('/api/autonomous/status');
+        if (!res.ok) return;
+        const data = await res.json();
+        isAutonomousSoarEnabled = data.autonomous_enabled;
+        isSelfDrivingActive = data.self_driving_active;
+
+        updateAutonomousUIControls(data);
+      } catch (err) {
+        console.error("Error loading autonomous status", err);
+      }
+    }
+
+    function updateAutonomousUIControls(data) {
+      const topBadgeText = document.getElementById('topSoarStateText');
+      if (topBadgeText) topBadgeText.innerText = data.autonomous_enabled ? "AUTO" : "OFF";
+      
+      const topHunterText = document.getElementById('topHunterStateText');
+      if (topHunterText) topHunterText.innerText = data.self_driving_active ? "Hunter: ON" : "Hunter: OFF";
+
+      const btnTopHunter = document.getElementById('btnSelfDrivingTop');
+      if (btnTopHunter) {
+        btnTopHunter.className = data.self_driving_active
+          ? "px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white font-medium transition shadow-sm flex items-center space-x-1"
+          : "px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition shadow-sm flex items-center space-x-1";
+      }
+
+      const lblSoar = document.getElementById('lblAutonomousState');
+      const btnSoar = document.getElementById('btnToggleAutonomousSOAR');
+      if (lblSoar && btnSoar) {
+        lblSoar.innerText = data.autonomous_enabled ? "SOAR: ACTIVE" : "SOAR: DISABLED";
+        btnSoar.className = data.autonomous_enabled 
+          ? "px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center space-x-1.5 shadow-sm"
+          : "px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition flex items-center space-x-1.5 shadow-sm";
+      }
+
+      const lblHunter = document.getElementById('lblSelfDrivingState');
+      const btnHunter = document.getElementById('btnToggleSelfDriving');
+      if (lblHunter && btnHunter) {
+        lblHunter.innerText = data.self_driving_active ? "Hunter: ON" : "Hunter: OFF";
+        btnHunter.className = data.self_driving_active
+          ? "px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition flex items-center space-x-1.5 shadow-sm"
+          : "px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition flex items-center space-x-1.5 shadow-sm";
+      }
+
+      const statDev = document.getElementById('statQuarantinedDevices');
+      if (statDev && data.quarantined_devices_count !== undefined) {
+        statDev.innerText = data.quarantined_devices_count;
+      }
+      const statIp = document.getElementById('statBlacklistedIPs');
+      if (statIp && data.blacklisted_ips_count !== undefined) {
+        statIp.innerText = data.blacklisted_ips_count;
+      }
+    }
+
+    async function toggleAutonomousEngine() {
+      try {
+        const res = await fetch('/api/autonomous/toggle', { method: 'POST' });
+        const data = await res.json();
+        isAutonomousSoarEnabled = data.autonomous_enabled;
+        loadAutonomousStatus();
+        showToast("Autonomous SOAR", `Autonomous response mode ${data.autonomous_enabled ? 'ENABLED' : 'PAUSED'}.`, data.autonomous_enabled ? "success" : "info");
+      } catch (e) {
+        showToast("SOAR Error", e.message, "danger");
+      }
+    }
+
+    async function toggleSelfDriving() {
+      try {
+        const res = await fetch('/api/autonomous/self-driving/toggle', { method: 'POST' });
+        const data = await res.json();
+        isSelfDrivingActive = data.self_driving_active;
+        loadAutonomousStatus();
+        showToast("Self-Driving Threat Hunter", `Zero-manpower threat hunter ${data.self_driving_active ? 'ACTIVE' : 'IDLE'}.`, data.self_driving_active ? "success" : "info");
+      } catch (e) {
+        showToast("Hunter Error", e.message, "danger");
+      }
+    }
+
+    async function triggerAutonomousDemoPulse() {
+      showToast("Threat Injected", "Simulating adversary takeover sequence across edge gateway...", "info");
+      try {
+        const res = await fetch('/api/autonomous/demo-pulse', { method: 'POST' });
+        const data = await res.json();
+        const action = data.action;
+        showToast("100% Zero-Manpower Interception", `${action.action_type} executed in ${action.latency_ms}ms! Device quarantined & session revoked.`, "danger");
+        prependAutonomousAction(action);
+        loadAutonomousStatus();
+        refreshAutonomousQuarantine();
+        loadMetrics();
+        loadDecisionsFeed();
+      } catch (e) {
+        showToast("Pulse Failed", e.message, "danger");
+      }
+    }
+
+    async function loadAutonomousActions() {
+      try {
+        const res = await fetch('/api/autonomous/actions?limit=50');
+        const actions = await res.json();
+        const tbody = document.getElementById('autonomousActionsTableBody');
+        if (!tbody) return;
+
+        if (!actions.length) {
+          tbody.innerHTML = '<tr><td colspan="5" class="py-8 text-center text-slate-500 font-sans">No autonomous containment actions executed yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = actions.map(act => renderAutonomousActionRow(act)).join('');
+      } catch (e) {
+        console.error("Error loading autonomous actions", e);
+      }
+    }
+
+    function renderAutonomousActionRow(act, isNew = false) {
+      const timeStr = act.created_at ? act.created_at.substring(11, 19) : new Date().toLocaleTimeString();
+      const highlight = isNew ? "bg-rose-950/40 border-l-2 border-rose-500 transition duration-700" : "hover:bg-slate-800/40 transition";
+      
+      let badge = "badge-revoke";
+      if (act.action_type === "AUTO_STEP_UP") badge = "badge-stepup";
+      if (act.action_type === "AUTO_REVIEW_CLOSE") badge = "badge-review";
+
+      return `
+        <tr class="${highlight}">
+          <td class="py-2.5 px-3">
+            <div class="text-white font-medium">${timeStr}</div>
+            <div class="text-[10px] text-slate-500 font-mono">${act.action_id}</div>
+          </td>
+          <td class="py-2.5 px-3">
+            <div class="text-indigo-300 font-semibold font-sans">${act.user}</div>
+            <div class="text-[10px] text-slate-400 font-mono">${act.triggered_rule}</div>
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${badge}">${act.action_type}</span>
+            <div class="text-[10px] text-emerald-400 mt-0.5 font-sans">${act.human_action_needed ? 'Manual' : '⚡ 0 Manpower (Automated)'}</div>
+          </td>
+          <td class="py-2.5 px-3 font-mono font-bold text-cyan-400">
+            ${act.latency_ms} ms
+          </td>
+          <td class="py-2.5 px-3">
+            <span class="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-mono text-[10px]">${act.mitre_technique || 'T1556'}</span>
+          </td>
+        </tr>
+      `;
+    }
+
+    function prependAutonomousAction(act) {
+      const tbody = document.getElementById('autonomousActionsTableBody');
+      if (!tbody) return;
+
+      if (tbody.children.length === 1 && tbody.children[0].innerText.includes("Awaiting autonomous")) {
+        tbody.innerHTML = '';
+      }
+
+      const temp = document.createElement('tbody');
+      temp.innerHTML = renderAutonomousActionRow(act, true);
+      const row = temp.firstElementChild;
+      tbody.insertBefore(row, tbody.firstChild);
+
+      while (tbody.children.length > 50) {
+        tbody.removeChild(tbody.lastChild);
+      }
+    }
+
+    async function refreshAutonomousQuarantine() {
+      try {
+        const res = await fetch('/api/autonomous/quarantine');
+        const data = await res.json();
+        
+        const devList = document.getElementById('quarantineDevicesList');
+        if (devList) {
+          if (!data.quarantined_devices.length) {
+            devList.innerHTML = `<div class="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-400 italic font-sans text-xs">No devices quarantined yet</div>`;
+          } else {
+            devList.innerHTML = data.quarantined_devices.map(d => `
+              <div class="p-2 rounded bg-rose-950/20 border border-rose-500/30 flex justify-between items-center text-xs">
+                <span class="text-rose-300 font-mono"><i class="fa-solid fa-mobile-screen mr-1 text-[10px]"></i>${d}</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-semibold">QUARANTINED</span>
+              </div>
+            `).join('');
+          }
+        }
+
+        const ipList = document.getElementById('blacklistIPsList');
+        if (ipList) {
+          if (!data.blacklisted_ips.length) {
+            ipList.innerHTML = `<div class="p-2 rounded bg-slate-900/80 border border-slate-800 text-slate-400 italic font-sans text-xs">No IPs blacklisted yet</div>`;
+          } else {
+            ipList.innerHTML = data.blacklisted_ips.map(ip => `
+              <div class="p-2 rounded bg-rose-950/20 border border-rose-500/30 flex justify-between items-center text-xs">
+                <span class="text-rose-300 font-mono"><i class="fa-solid fa-network-wired mr-1 text-[10px]"></i>${ip}</span>
+                <span class="text-[9px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-semibold">DROP (403)</span>
+              </div>
+            `).join('');
+          }
+        }
+      } catch (e) {
+        console.error("Error refreshing quarantine", e);
+      }
     }
 
 
@@ -1873,6 +2239,20 @@
         }
       });
 
+      // Real-Time Autonomous SOAR Interceptions Listener
+      eventSource.addEventListener('autonomous_action', (e) => {
+        try {
+          const envelope = JSON.parse(e.data);
+          const act = envelope.data;
+          prependAutonomousAction(act);
+          loadAutonomousStatus();
+          refreshAutonomousQuarantine();
+          showToast("SOAR Auto-Mitigation", `⚡ Auto-${act.action_type} for ${act.user} (${act.latency_ms}ms) - 0 Human Touch`, "danger");
+        } catch (err) {
+          console.error("SSE autonomous_action parse error", err);
+        }
+      });
+
       eventSource.onerror = (err) => {
         if (radarBadge) {
           radarBadge.className = "flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-amber-950/40 border border-amber-500/30 text-amber-400 text-xs font-mono";
@@ -1885,8 +2265,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       loadMetrics();
       loadDecisionsFeed();
+      loadAutonomousStatus();
+      loadAutonomousActions();
+      refreshAutonomousQuarantine();
       connectSSE();
       setInterval(loadMetrics, 12000);
+      setInterval(loadAutonomousStatus, 15000);
     });
   </script>
 

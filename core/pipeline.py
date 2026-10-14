@@ -48,6 +48,7 @@ from store.models import (
     QuarantineModel
 )
 from store.audit import AuditLedger
+from core.autonomous_soar import AutonomousSOAR
 
 
 class SecurityPipeline:
@@ -377,6 +378,30 @@ class SecurityPipeline:
         )
         db.add(db_dec)
         db.commit()
+
+        # Step 9b: Zero-Manpower Autonomous SOAR Auto-Mitigation
+        if mode == "live" and AutonomousSOAR.is_autonomous_enabled():
+            calc_risk = 0
+            if final_response == ResponseAction.REVOKE:
+                calc_risk = 85
+            elif final_response == ResponseAction.STEP_UP:
+                calc_risk = 55
+            elif final_response == ResponseAction.ANALYST_REVIEW:
+                calc_risk = 70
+            elif signals_dict:
+                calc_risk = min(100, len([s for s in signals_dict.values() if hasattr(s, "status") and s.status.value == "triggered"]) * 25)
+
+            AutonomousSOAR.process_decision(
+                decision_id=decision.decision_id,
+                session_id=decision.session_id,
+                user=decision.user,
+                device_id=norm_event.device_id,
+                ip_address=raw_event.details.get("ip") if hasattr(raw_event, "details") and raw_event.details else None,
+                action=norm_event.action,
+                risk_score=calc_risk,
+                signals=[s.model_dump() for s in decision.signals],
+                db=db
+            )
 
         # Step 10: Learn Profile (Section 8.4)
         # Only learn from events eligible for baseline updates (non-revoked, legitimate)
